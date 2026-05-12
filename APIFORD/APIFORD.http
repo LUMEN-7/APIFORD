@@ -1,0 +1,6 @@
+@APIFORD_HostAddress = http://localhost:5206
+
+GET {{APIFORD_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
