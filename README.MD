@@ -1,4 +1,4 @@
-<p align="center">
+q<p align="center">
   <img src="https://raw.githubusercontent.com/LUMEN-7/images/refs/heads/main/logo.png" width="200" />
 </p>
 
@@ -346,7 +346,12 @@ git push origin feature/minha-feature
 
 | Foto                                                                                                     | Nome                                                                      | RM        |
 | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------- |
+| <img src="https://avatars.githubusercontent.com/AnaTorresLoureiro" width="80" style="border-radius:50%;">| [Ana Laura Torres Loureiro](https://github.com/AnaTorresLoureiro)         | RM 554375 |
+| <img src="https://avatars.githubusercontent.com/MuriloCngp" width="80" style="border-radius:50%;">       | [Murilo Cordeiro Ferreira](https://github.com/MuriloCngp)                 | RM 556727 |
 | <img src="https://avatars.githubusercontent.com/Geronimo-augusto" width="80" style="border-radius:50%;"> | [Geronimo Augusto Nascimento Santos](https://github.com/Geronimo-augusto) | RM 557170 |
+| <img src="https://avatars.githubusercontent.com/iannyrfs" width="80" style="border-radius:50%;">         | [Ianny Raquel Ferreira De Souza](https://github.com/iannyrfs)             | RM 559096 |
+| <img src="https://avatars.githubusercontent.com/Vitorr-AF" width="80" style="border-radius:50%;">        | [Vitor Augusto França de Oliveira](https://github.com/Vitorr-AF)          | RM 555469 |
+
 
 ---
 
