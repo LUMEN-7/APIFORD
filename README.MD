@@ -19,14 +19,6 @@
 
 ---
 
-## 📸 Preview
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/user/repo/main/assets/swagger-preview.png" width="700"/>
-</p>
-
----
-
 ## 🔗 Links úteis
 
 * 📄 Documentação via Swagger
