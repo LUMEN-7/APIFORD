@@ -1,4 +1,4 @@
-q<p align="center">
+<p align="center">
   <img src="https://raw.githubusercontent.com/LUMEN-7/images/refs/heads/main/logo.png" width="200" />
 </p>
 
@@ -13,40 +13,37 @@ q<p align="center">
 
 ![Status](https://img.shields.io/badge/STATUS-EM%20DESENVOLVIMENTO-0562D2?style=for-the-badge\&labelColor=00142E)
 ![Version](https://img.shields.io/badge/VERSION-1.0.0-0562D2?style=for-the-badge\&labelColor=00142E)
-![.NET](https://img.shields.io/badge/.NET-10-purple?style=for-the-badge\&logo=dotnet\&labelColor=black)
-![CSharp](https://img.shields.io/badge/C%23-239120?style=for-the-badge\&logo=csharp\&logoColor=white\&labelColor=black)
-![SQLServer](https://img.shields.io/badge/SQL%20Server-red?style=for-the-badge\&logo=microsoftsqlserver\&logoColor=white\&labelColor=black)
 
 ---
 
 ## 🔗 Links úteis
 
-* 📄 Documentação via Swagger
-* 🔐 Sistema de autenticação com Identity
-* 🧠 Arquitetura baseada em Services e DTOs
-* ⚡ Estrutura preparada para escalabilidade
+* Documentação via Swagger
+* Sistema de autenticação com Identity
+* Arquitetura baseada em Services e DTOs
+* Estrutura preparada para escalabilidade
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-* 🔐 Sistema de autenticação utilizando ASP.NET Identity
-* 🧩 Arquitetura baseada em Services genéricos
-* 📦 CRUD genérico reutilizável com Generic Base Service
-* 🧠 AutoMapper para mapeamento entre entidades e DTOs
-* 📄 Documentação automática com Swagger
-* 🗃️ Integração com SQL Server via Entity Framework Core
-* 🧹 Middleware global para tratamento de exceções
-* 🔄 Soft Delete de entidades
-* 🕶️ Sistema de anonimização de dados
-* 📡 Estrutura pronta para JWT Authentication
-* ⚡ Compressão de respostas HTTP
-* 📚 Conversão automática de ENUM para string em JSON
-* 🧱 Arquitetura preparada para expansão de módulos e microsserviços
+* Sistema de autenticação utilizando ASP.NET Identity
+* Arquitetura baseada em Services genéricos
+* CRUD genérico reutilizável com Generic Base Service
+* AutoMapper para mapeamento entre entidades e DTOs
+* Documentação automática com Swagger
+* Integração com SQL Server via Entity Framework Core
+* Middleware global para tratamento de exceções
+* Soft Delete de entidades
+* Sistema de anonimização de dados
+* Estrutura pronta para JWT Authentication
+* Compressão de respostas HTTP
+* Conversão automática de ENUM para string em JSON
+* Arquitetura preparada para expansão de módulos e microsserviços
 
 ---
 
-## 🧱 Arquitetura
+## Arquitetura
 
 ```text
 Cliente / Frontend
@@ -73,7 +70,7 @@ SQL Server
 
 ---
 
-## 🛠️ Tecnologias
+## Tecnologias
 
 ### Backend
 
@@ -93,7 +90,7 @@ SQL Server
 
 ---
 
-## 📂 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 APIFORD/
@@ -144,9 +141,9 @@ A aplicação está preparada para autenticação JWT.
 
 ---
 
-## 🚀 Como rodar o projeto
+## Como rodar o projeto
 
-### 🔧 Pré-requisitos
+### Pré-requisitos
 
 * .NET 10 SDK
 * SQL Server
@@ -155,7 +152,7 @@ A aplicação está preparada para autenticação JWT.
 
 ---
 
-### ▶️ Clonar o repositório
+### Clonar o repositório
 
 ```bash
 git clone https://github.com/user/APIFORD.git
@@ -163,7 +160,7 @@ git clone https://github.com/user/APIFORD.git
 
 ---
 
-### ▶️ Entrar na pasta do projeto
+### Entrar na pasta do projeto
 
 ```bash
 cd APIFORD
@@ -171,7 +168,7 @@ cd APIFORD
 
 ---
 
-### ▶️ Restaurar dependências
+### Restaurar dependências
 
 ```bash
 dotnet restore
@@ -179,7 +176,7 @@ dotnet restore
 
 ---
 
-### ▶️ Aplicar migrations
+### Aplicar migrations
 
 ```bash
 dotnet ef database update
@@ -187,7 +184,7 @@ dotnet ef database update
 
 ---
 
-### ▶️ Executar o projeto
+### Executar o projeto
 
 ```bash
 dotnet run
@@ -195,7 +192,7 @@ dotnet run
 
 ---
 
-## 📄 Swagger
+## Swagger
 
 Após iniciar o projeto, acesse:
 
@@ -207,7 +204,7 @@ A documentação será gerada automaticamente.
 
 ---
 
-## 🔐 Segurança
+## Segurança
 
 A aplicação possui estrutura preparada para:
 
@@ -220,7 +217,7 @@ A aplicação possui estrutura preparada para:
 
 ---
 
-## 🧠 Generic Base Service
+## Generic Base Service
 
 O projeto utiliza um serviço genérico reutilizável:
 
@@ -241,7 +238,7 @@ Permitindo reaproveitamento de código e padronização das operações CRUD.
 
 ---
 
-## 🧪 Executar Testes
+## Executar Testes
 
 ```bash
 dotnet test
@@ -249,7 +246,7 @@ dotnet test
 
 ---
 
-## 📈 Roadmap
+## Roadmap
 
 * [x] Estrutura inicial da API
 * [x] Integração com SQL Server
@@ -268,7 +265,7 @@ dotnet test
 
 ---
 
-## 🧩 Padrões Utilizados
+##  Padrões Utilizados
 
 * Repository Pattern (parcial)
 * Service Layer Pattern
@@ -280,7 +277,7 @@ dotnet test
 
 ---
 
-## 📚 Pacotes Utilizados
+## Pacotes Utilizados
 
 ```text
 AutoMapper
@@ -293,7 +290,7 @@ Newtonsoft.Json
 
 ---
 
-## 🛡️ Middleware Global de Exceções
+## Middleware Global de Exceções
 
 O projeto possui middleware personalizado responsável por:
 
@@ -304,7 +301,7 @@ O projeto possui middleware personalizado responsável por:
 
 ---
 
-## 📌 Observações
+## Observações
 
 * O projeto foi estruturado visando reutilização e escalabilidade.
 * A arquitetura facilita a criação de novos módulos.
@@ -314,7 +311,7 @@ O projeto possui middleware personalizado responsável por:
 
 ---
 
-## 🤝 Como contribuir
+## Como contribuir
 
 1. Fork o projeto
 2. Crie uma branch
@@ -355,12 +352,6 @@ git push origin feature/minha-feature
 
 ---
 
-## 📜 Licença
-
-Este projeto está sob a licença MIT.
-
----
-
 <p align="center">
-  Desenvolvido com ❤️ utilizando C#, .NET 10 e SQL Server.
+  Desenvolvido utilizando C#, .NET 10 e SQL Server.
 </p>
