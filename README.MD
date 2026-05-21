@@ -16,7 +16,7 @@
 
 ---
 
-## 🔗 Links úteis
+## Links úteis
 
 * Documentação via Swagger
 * Sistema de autenticação com Identity
@@ -115,7 +115,7 @@ APIFORD/
 
 ---
 
-## ⚙️ Configurações Principais
+## Configurações Principais
 
 ### Banco de Dados
 
@@ -213,7 +213,7 @@ A aplicação possui estrutura preparada para:
 * Authorization Policies
 * Middleware de tratamento de exceções
 * Soft Delete
-* Anonimização de dados
+* Exclusão Anônima
 
 ---
 
