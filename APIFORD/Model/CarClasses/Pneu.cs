@@ -6,12 +6,13 @@ public class Pneu
 {
     public int Id { get; set; }
     public int CarroId { get; set; }
-    public string Tipo { get; set; }
-    public int Aro { get; set; }
-    public int Largura { get; set; }
-    public int Perfil { get; set; }
     public bool Excluido { get; set; } = false;
+    public DateTime DataColeta { get; set; } = DateTime.UtcNow;
 
+    public PropriedadeScraping<string> Tipo { get; set; } = new();
+    public PropriedadeScraping<int> Aro { get; set; } = new();
+    public PropriedadeScraping<int> Largura { get; set; } = new();
+    public PropriedadeScraping<int> Perfil { get; set; } = new();
 
-    public virtual ICollection<PneuFonte> PneuFontes { get; set; } = new List<PneuFonte>();
+    public virtual Carro Carro { get; set; } = null!;
 }

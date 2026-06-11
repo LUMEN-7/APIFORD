@@ -6,12 +6,13 @@ public class Dimensao
 {
     public int Id { get; set; }
     public int CarroId { get; set; }
-    public decimal Comprimento { get; set; }
-    public decimal Largura { get; set; }
-    public decimal Altura { get; set; }
-    public decimal EntreEixos { get; set; }
     public bool Excluido { get; set; } = false;
+    public DateTime DataColeta { get; set; } = DateTime.UtcNow;
 
-    public virtual ICollection<DimensaoFonte> DimensaoFontes { get; set; } = new List<DimensaoFonte>();
+    public PropriedadeScraping<decimal> Comprimento { get; set; } = new();
+    public PropriedadeScraping<decimal> Largura { get; set; } = new();
+    public PropriedadeScraping<decimal> Altura { get; set; } = new();
+    public PropriedadeScraping<decimal> EntreEixos { get; set; } = new();
 
+    public virtual Carro Carro { get; set; } = null!;
 }

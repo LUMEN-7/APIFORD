@@ -1,9 +1,8 @@
 ﻿namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 
 public record CreateExtraDTO(
-    string CapacidadeTanque, 
-    string TipoCombustivel, 
-    string CapacidadeCarga, 
-    string CapacidadeReboque,
-    DateTime? DataReferencia
-    );
+    PropriedadeScrapingDTO<string> CapacidadeTanque,
+    PropriedadeScrapingDTO<string> TipoCombustivel,
+    PropriedadeScrapingDTO<string> CapacidadeCarga,
+    PropriedadeScrapingDTO<string> CapacidadeReboque
+);

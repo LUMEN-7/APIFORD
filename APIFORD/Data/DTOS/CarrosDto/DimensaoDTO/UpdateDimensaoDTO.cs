@@ -2,8 +2,8 @@
 
 public class UpdateDimensaoDTO
 {
-    public decimal? Length { get; set; }
-    public decimal? Largura { get; set; }
-    public decimal? Altura { get; set; }
-    public decimal? EntreEixos { get; set; }
+    public PropriedadeScrapingDTO<decimal>? Comprimento { get; set; }
+    public PropriedadeScrapingDTO<decimal>? Largura { get; set; }
+    public PropriedadeScrapingDTO<decimal>? Altura { get; set; }
+    public PropriedadeScrapingDTO<decimal>? EntreEixos { get; set; }
 }

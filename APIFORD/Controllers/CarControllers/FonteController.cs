@@ -9,11 +9,11 @@ namespace APIFORD.Controllers.Carro;
 
 [ApiController]
 [Route("[controller]")]
-public class SourceController : BaseController<Fonte, CreateFonteDTO, ReadFonteDTO, UpdateFonteDTO, int>
+public class FonteController : BaseController<Fonte, CreateFonteDTO, ReadFonteDTO, UpdateFonteDTO, int>
 {
-    private readonly FonteService _sourceService;
+    private readonly FonteService _FonteService;
 
-    public SourceController(FonteService sourceService) : base(sourceService)
+    public FonteController(FonteService FonteService) : base(FonteService)
     {
     }
 

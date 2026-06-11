@@ -1,8 +1,9 @@
-using AutoMapper;
 using APIFORD.Data;
 using APIFORD.Model;
 using APIFORD.Perfils;
 using APIFORD.Services;
+using APIFORD.Services.Search;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -62,6 +63,7 @@ builder.Services
 // ==========================================
 // 4. INJEÇÃO DE DEPENDÊNCIA (SEUS SERVIÇOS)
 // ==========================================
+builder.Services.AddHttpClient();
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<Program>()
     .AddClasses(classes => classes
@@ -72,6 +74,8 @@ builder.Services.Scan(scan => scan
     .AsImplementedInterfaces() // Regista como IBaseService<...>
     .WithScopedLifetime() // Define o tempo de vida como Scoped
 );
+// Adicione esta linha no seu Program.cs
+
 
 // ==========================================
 // 5. CONFIGURAÇÕES DA API E FERRAMENTAS
@@ -98,10 +102,10 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API Gateway / BFF para orquestração de serviços e raspagem de dados."
     });
 
-    // Código para Carroregar os comentários XML do Controller
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
+    //// Código para Carroregar os comentários XML do Controller
+    //var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    //var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+    //c.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddDbContext<FordDbContext>(options =>

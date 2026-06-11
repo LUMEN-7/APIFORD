@@ -1,11 +1,10 @@
 ﻿namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 
 public record CreateEspecificacaoDTO(
-    string Potencia,
-    string Torque, 
-    string RpmPotencia,
-    string RpmTorque, 
-    string Transmissao, 
-    string Tracao,
-    DateTime? DataReferencia
+    PropriedadeScrapingDTO<int> Potencia,
+    PropriedadeScrapingDTO<int> Torque,
+    PropriedadeScrapingDTO<int> PotenciaRpm,
+    PropriedadeScrapingDTO<int> TorqueRpm,
+    PropriedadeScrapingDTO<string> Transmissao,
+    PropriedadeScrapingDTO<string> Tracao
 );

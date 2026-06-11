@@ -2,10 +2,10 @@
 
 public class UpdateEspecificacaoDTO
 {
-    public string? Potencia { get; set; }
-    public string? Torque { get; set; }
-    public string? PotenciaRpm { get; set; }
-    public string? TorqueRpm { get; set; }
-    public string? Transmissao { get; set; }
-    public string? Drivetrain { get; set; }
+    public PropriedadeScrapingDTO<int>? Potencia { get; set; }
+    public PropriedadeScrapingDTO<int>? Torque { get; set; }
+    public PropriedadeScrapingDTO<int>? PotenciaRpm { get; set; }
+    public PropriedadeScrapingDTO<int>? TorqueRpm { get; set; }
+    public PropriedadeScrapingDTO<string>? Transmissao { get; set; }
+    public PropriedadeScrapingDTO<string>? Tracao { get; set; }
 }

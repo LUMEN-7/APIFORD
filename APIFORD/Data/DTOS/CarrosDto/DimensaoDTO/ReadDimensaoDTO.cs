@@ -3,13 +3,10 @@
 public class ReadDimensaoDTO
 {
     public int Id { get; set; }
-    public int CarroId { get; set; }    // Contexto do Carro
-    public int FonteId { get; set; } // Contexto da Fonte
-    public decimal Length { get; set; }
-    public decimal Largura { get; set; }
-    public decimal Altura { get; set; }
-    public decimal EntreEixos { get; set; }
+    public int CarroId { get; set; }
     public bool Excluido { get; set; }
-    public DateTime DataColeta { get; set; }
-    public DateTime? DataReferencia { get; set; }
+    public PropriedadeScrapingDTO<decimal> Comprimento { get; set; } = null!;
+    public PropriedadeScrapingDTO<decimal> Largura { get; set; } = null!;
+    public PropriedadeScrapingDTO<decimal> Altura { get; set; } = null!;
+    public PropriedadeScrapingDTO<decimal> EntreEixos { get; set; } = null!;
 }

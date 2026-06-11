@@ -2,8 +2,8 @@
 
 public class UpdatePneuDTO
 {
-    public string? Tipo { get; set; }
-    public int? Aro { get; set; }
-    public int? Largura { get; set; }
-    public int? AspectRatio { get; set; }
+    public PropriedadeScrapingDTO<string>? Tipo { get; set; }
+    public PropriedadeScrapingDTO<int>? Aro { get; set; }
+    public PropriedadeScrapingDTO<int>? Largura { get; set; }
+    public PropriedadeScrapingDTO<int>? Perfil { get; set; }
 }

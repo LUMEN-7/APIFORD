@@ -1,101 +1,128 @@
 ﻿using APIFORD.Data;
-using APIFORD.Data.DTOS.User;
-using APIFORD.Model;
 using APIFORD.Services.Interfaces;
 using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace APIFORD.Services;
 
-public abstract class BaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> : IBaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey>
-    where TEntity : class
+public class BaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> : IBaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> where TEntity : class
 {
     protected readonly FordDbContext Context;
     protected readonly IMapper Mapper;
     protected readonly DbSet<TEntity> DbSet;
 
-    protected BaseService(FordDbContext context, IMapper mapper)
+    public BaseService(FordDbContext context, IMapper mapper)
     {
         Context = context;
         Mapper = mapper;
         DbSet = Context.Set<TEntity>();
     }
 
-
-    // Gancho (Hook) para Carroregar os Includes. Sobrescreva se a tabela tiver relacionamentos
-    protected virtual IQueryable<TEntity> AddIncludes(IQueryable<TEntity> query) => query;
-
-
-    public async virtual Task<TReadDTO> CreateAsync(TCreateDTO createDto)
+    protected virtual IQueryable<TEntity> AddIncludes(IQueryable<TEntity> query)
     {
-        var entity = Mapper.Map<TEntity>(createDto);
+        return query;
+    }
+
+    protected virtual Task PostMappingAsync(TReadDTO dto, TEntity entity)
+    {
+        return Task.CompletedTask;
+    }
+
+    protected virtual Task PostMappingListAsync(List<TReadDTO> dtos, List<TEntity> entities)
+    {
+        return Task.CompletedTask;
+    }
+
+    public virtual async Task<TReadDTO> CreateAsync(TCreateDTO dto)
+    {
+        var entity = Mapper.Map<TEntity>(dto);
         await DbSet.AddAsync(entity);
         await Context.SaveChangesAsync();
-        return Mapper.Map<TReadDTO>(entity);
-    }
-    public async virtual Task<IEnumerable<TReadDTO>> GetAllAsync()
-    {
-        IQueryable<TEntity> query = DbSet;
-        query = AddIncludes(query); // Aplica os includes se houverem
 
-        var results = await query.ToListAsync();
-        return Mapper.Map<List<TReadDTO>>(results);
+        var readDto = Mapper.Map<TReadDTO>(entity);
+        await PostMappingAsync(readDto, entity);
+        return readDto;
     }
-    public async virtual Task<TReadDTO> GetByIdAsync(TKey id)
+
+    public virtual async Task<IEnumerable<TReadDTO>> GetAllAsync()
+    {
+        var query = DbSet.AsQueryable();
+        query = AddIncludes(query);
+
+        var property = typeof(TEntity).GetProperty("Excluido");
+        if (property != null)
+        {
+            query = query.Where(e => EF.Property<bool>(e, "Excluido") == false);
+        }
+
+        var entities = await query.ToListAsync();
+        var dtos = Mapper.Map<List<TReadDTO>>(entities);
+
+        await PostMappingListAsync(dtos, entities);
+        return dtos;
+    }
+
+    public virtual async Task<TReadDTO> GetByIdAsync(TKey id)
+    {
+        var query = DbSet.AsQueryable();
+        query = AddIncludes(query);
+
+        var entity = await query.FirstOrDefaultAsync(e => EF.Property<TKey>(e, "Id").Equals(id));
+        if (entity == null) return default!;
+
+        var readDto = Mapper.Map<TReadDTO>(entity);
+        await PostMappingAsync(readDto, entity);
+        return readDto;
+    }
+
+    public virtual async Task<TReadDTO> UpdateAsync(TKey id, TUpdateDTO dto)
     {
         var entity = await DbSet.FindAsync(id);
-        if (entity == null) throw new KeyNotFoundException("Registro não encontrado para o ID informado.");
-        return Mapper.Map<TReadDTO>(entity);
-    }
+        if (entity == null) return default!;
 
-
-    public async virtual Task<TReadDTO> UpdateAsync(TKey id, TUpdateDTO updateDto)
-    {
-        var entity = await DbSet.FindAsync(id);
-        if (entity == null) throw new KeyNotFoundException("Registro não encontrado para o ID informado.");
-        entity = Mapper.Map(updateDto, entity);
-
-        
+        Mapper.Map(dto, entity);
         await Context.SaveChangesAsync();
-        return Mapper.Map<TReadDTO>(entity);
+
+        var readDto = Mapper.Map<TReadDTO>(entity);
+        await PostMappingAsync(readDto, entity);
+        return readDto;
     }
 
-    public async virtual Task<bool> SoftDeleteAsync(TKey id)
+    public virtual async Task<bool> SoftDeleteAsync(TKey id)
     {
         var entity = await DbSet.FindAsync(id);
-        if (entity == null) throw new KeyNotFoundException("Registro não encontrado para o ID informado.");
+        if (entity == null) return false;
 
-        entity.GetType().GetProperty("IsDeleted")?.SetValue(entity, true);
-        await Context.SaveChangesAsync();
-        return true;
+        var property = typeof(TEntity).GetProperty("Excluido");
+        if (property != null)
+        {
+            property.SetValue(entity, true);
+            await Context.SaveChangesAsync();
+            return true;
+        }
+
+        return false;
     }
 
     public virtual async Task<bool> AnonymizeAsync(TKey id)
     {
         var entity = await DbSet.FindAsync(id);
-        if (entity == null) throw new KeyNotFoundException("Registro não encontrado para o ID informado.");
+        if (entity == null) return false;
 
-        // Usamos Reflexão para varrer todas as propriedades e alterar os valores
-        var properties = typeof(TEntity).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanWrite && p.Name != "Id"); // Mantém o ID intacto
-
+        var properties = typeof(TEntity).GetProperties();
         foreach (var prop in properties)
         {
-            if (prop.Name == "IsDeleted") prop.SetValue(entity, true);
-            // Se for string, vira "Unknown"
-            if (prop.PropertyType == typeof(string)) prop.SetValue(entity, "Unknown");
-            // Se for número, zera (opcional)
-            else if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(decimal)) prop.SetValue(entity, 0);
-            // Se for data, pode ser nula
-            else if (prop.PropertyType == typeof(DateTime?)) prop.SetValue(entity, null);
-
+            if (prop.PropertyType == typeof(string) && prop.Name != "Id")
+            {
+                prop.SetValue(entity, "Unknown");
+            }
         }
+
         await Context.SaveChangesAsync();
         return true;
     }
-
-
-
 }

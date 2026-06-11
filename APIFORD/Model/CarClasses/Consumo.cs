@@ -6,10 +6,11 @@ public class Consumo
 {
     public int Id { get; set; }
     public int CarroId { get; set; }
-    public string Cidade { get; set; } 
-    public string Estrada { get; set; }
     public bool Excluido { get; set; } = false;
+    public DateTime DataColeta { get; set; } = DateTime.UtcNow;
 
+    public PropriedadeScraping<string> Cidade { get; set; } = new();
+    public PropriedadeScraping<string> Estrada { get; set; } = new();
 
-    public virtual ICollection<ConsumoFonte> ConsumoFontes { get; set; } = new List<ConsumoFonte>();
+    public virtual Carro Carro { get; set; } = null!;
 }

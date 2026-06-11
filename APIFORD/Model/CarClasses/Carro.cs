@@ -11,13 +11,11 @@ public class Carro
     public int Ano { get; set; }
     public bool Excluido { get; set; } = false;
 
-
-    // Relacionamentos 1:N (Permitem flexibilidade para múltiplas fontes)
-    public ICollection<ModeloSalvo> SalvoUsuario { get; set; } = new List<ModeloSalvo>();
-    public ICollection<Especificacao> Especificacaos { get; set; } = new List<Especificacao>();
-    public ICollection<Consumo> Consumos { get; set; } = new List<Consumo>();
-    public ICollection<Dimensao> Dimensoes { get; set; } = new List<Dimensao>();
-    public ICollection<Pneu> Pneus { get; set; } = new List<Pneu>();
-    public ICollection<Extra> Extras { get; set; } = new List<Extra>();
-    public ICollection<CarroModo> ModosCarro { get; set; } = new List<CarroModo>();
+    public virtual ICollection<ModeloSalvo> SalvoUsuario { get; set; } = new List<ModeloSalvo>();
+    public virtual ICollection<Especificacao> Especificacoes { get; set; } = new List<Especificacao>();
+    public virtual ICollection<Consumo> Consumos { get; set; } = new List<Consumo>();
+    public virtual ICollection<Dimensao> Dimensoes { get; set; } = new List<Dimensao>();
+    public virtual ICollection<Pneu> Pneus { get; set; } = new List<Pneu>();
+    public virtual ICollection<Extra> Extras { get; set; } = new List<Extra>();
+    public virtual ICollection<CarroModo> ModosCarro { get; set; } = new List<CarroModo>();
 }

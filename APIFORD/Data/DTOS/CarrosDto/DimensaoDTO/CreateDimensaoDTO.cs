@@ -1,9 +1,8 @@
 ﻿namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 
 public record CreateDimensaoDTO(
-    decimal Length, 
-    decimal Largura, 
-    decimal Altura, 
-    decimal EntreEixos,
-    DateTime? DataReferencia
-    );
+    PropriedadeScrapingDTO<decimal> Comprimento,
+    PropriedadeScrapingDTO<decimal> Largura,
+    PropriedadeScrapingDTO<decimal> Altura,
+    PropriedadeScrapingDTO<decimal> EntreEixos
+);

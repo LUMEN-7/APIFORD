@@ -2,10 +2,8 @@
 
 public class UpdateExtraDTO
 {
-    public string? CapacidadeTanque { get; set; }
-    public string? TipoCombustivel { get; set; }
-    public string? CapacidadeCarga { get; set; }
-    public string? CapacidadeReboque { get; set; }
-
-    public DateTime? DataReferencia { get; set; }
+    public PropriedadeScrapingDTO<string>? CapacidadeTanque { get; set; }
+    public PropriedadeScrapingDTO<string>? TipoCombustivel { get; set; }
+    public PropriedadeScrapingDTO<string>? CapacidadeCarga { get; set; }
+    public PropriedadeScrapingDTO<string>? CapacidadeReboque { get; set; }
 }
