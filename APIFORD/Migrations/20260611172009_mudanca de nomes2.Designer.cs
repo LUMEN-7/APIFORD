@@ -4,6 +4,7 @@ using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class UserDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611172009_mudanca de nomes2")]
+    partial class mudancadenomes2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -639,10 +642,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -691,10 +694,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -761,10 +764,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<decimal>("Valor");
 
@@ -814,10 +817,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<decimal>("Valor");
 
@@ -867,10 +870,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<decimal>("Valor");
 
@@ -919,10 +922,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<decimal>("Valor");
 
@@ -996,10 +999,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1049,10 +1052,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1101,10 +1104,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1153,10 +1156,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1205,10 +1208,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -1258,10 +1261,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -1341,10 +1344,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -1393,10 +1396,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -1445,10 +1448,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -1497,10 +1500,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 
@@ -1594,10 +1597,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1646,10 +1649,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1698,10 +1701,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<int>("Valor");
 
@@ -1750,10 +1753,10 @@ namespace APIFORD.Migrations
 
                                     b2.Property<DateTime?>("DataReferencia");
 
+                                    b2.Property<int>("FonteId");
+
                                     b2.Property<string>("Fonte")
                                         .IsRequired();
-
-                                    b2.Property<int>("FonteId");
 
                                     b2.Property<string>("Valor");
 

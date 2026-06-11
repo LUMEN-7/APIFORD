@@ -21,8 +21,8 @@ public class PesquisaController : ControllerBase
     [HttpPost("busca")]
     public  async Task<IActionResult> Busca([FromBody] BuscaDTO dto)
     {
-        //var result = await _pesquisaService.Busca(dto);
-        return Ok();
+        var result = await _pesquisaService.Busca(dto);
+        return Ok(result);
     }
 
 

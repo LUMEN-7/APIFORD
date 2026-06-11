@@ -4,30 +4,32 @@ namespace APIFORD.Data.DTOS;
 
 public class PropriedadeScrapingDTO<T>
 {
+    [JsonPropertyName("Confianca")]
     public double Confianca { get; set; }
+
+    [JsonPropertyName("Conflito")]
     public bool Conflito { get; set; }
 
-    [JsonPropertyName("Fontes")] // É ISTO QUE RESOLVE O SEU ERRO!
-    public List<ItemFonteScrapingDTO<T>> HistoricoFontes { get; set; } = new();
+    [JsonPropertyName("Fontes")]
+    public List<ItemFonteScrapingDTO<T>> Fontes { get; set; } = new();
 }
-// O ITEM INTERNO: É o seu antigo ValorScrapingDto evoluído, contendo os dados individuais de cada fonte
+
 public class ItemFonteScrapingDTO<T>
 {
-    
+    [JsonPropertyName("Valor")]
     public T Valor { get; set; } = default!;
 
-    
+    [JsonPropertyName("Confianca")]
     public double Confianca { get; set; }
 
-    [JsonPropertyName("Fonte")]
-    public string NomeFontePython { get; set; } = string.Empty; // Recebe o "icarros.com.br"
+    [JsonPropertyName("Fonte")] // resumo da historia essa merda serva pra merda nenhuma
+    public string Fonte { get; set; } = string.Empty;
 
-    // Estes campos ficam vazios no POST, mas serão preenchidos pelo C# antes de gravar
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    // Coloque JsonIgnore simples para o C# focar apenas naquilo que vem do Python
+    [JsonIgnore]
     public int FonteId { get; set; }
-
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public DateTime DataColeta { get; set; }
-
+    [JsonIgnore]
     public DateTime? DataReferencia { get; set; }
 }

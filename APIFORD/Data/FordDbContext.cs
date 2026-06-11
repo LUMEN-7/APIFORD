@@ -58,42 +58,42 @@ public class FordDbContext : IdentityDbContext<User>
 
         builder.Entity<Especificacao>(entity =>
         {
-            entity.OwnsOne(e => e.Potencia, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.Torque, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.PotenciaRpm, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.TorqueRpm, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.Transmissao, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.Tracao, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
+            entity.OwnsOne(e => e.Potencia, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.Torque, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.PotenciaRpm, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.TorqueRpm, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.Transmissao, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.Tracao, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
         });
 
         builder.Entity<Consumo>(entity =>
         {
-            entity.OwnsOne(c => c.Cidade, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(c => c.Estrada, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
+            entity.OwnsOne(c => c.Cidade, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(c => c.Estrada, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
         });
 
         builder.Entity<Dimensao>(entity =>
         {
-            entity.OwnsOne(d => d.Comprimento, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(d => d.Largura, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(d => d.Altura, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(d => d.EntreEixos, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
+            entity.OwnsOne(d => d.Comprimento, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(d => d.Largura, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(d => d.Altura, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(d => d.EntreEixos, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
         });
 
         builder.Entity<Pneu>(entity =>
         {
-            entity.OwnsOne(p => p.Tipo, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(p => p.Aro, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(p => p.Largura, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(p => p.Perfil, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
+            entity.OwnsOne(p => p.Tipo, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(p => p.Aro, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(p => p.Largura, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(p => p.Perfil, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
         });
 
         builder.Entity<Extra>(entity =>
         {
-            entity.OwnsOne(e => e.CapacidadeTanque, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.TipoCombustivel, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.CapacidadeCarga, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
-            entity.OwnsOne(e => e.CapacidadeReboque, b => { b.ToJson(); b.OwnsMany(x => x.HistoricoFontes); });
+            entity.OwnsOne(e => e.CapacidadeTanque, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.TipoCombustivel, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.CapacidadeCarga, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+            entity.OwnsOne(e => e.CapacidadeReboque, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
         });
     }
 }

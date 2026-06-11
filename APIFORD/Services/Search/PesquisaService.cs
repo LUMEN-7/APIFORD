@@ -36,7 +36,7 @@ public class PesquisaService
         var url = "http://127.0.0.1:8000/specs";
 
         // 1. Consome a API em Python enviando o objeto de busca no corpo da requisição POST
-        var opcoesSerializacao = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var opcoesSerializacao = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
         var response = await _httpClient.PostAsJsonAsync(url, dto);
 
         if (!response.IsSuccessStatusCode)
@@ -53,6 +53,8 @@ public class PesquisaService
 
         // 3. Converte o DTO recebido para a Entidade Carro do banco de dados
         var carroEntity = _mapper.Map<Carro>(createCarroDto);
+
+
 
         // 4. Resolve o mapeamento automático dos modos de condução (Tabela Intermediária Relacional)
         if (createCarroDto.ModosCarro != null && createCarroDto.ModosCarro.Any())
@@ -107,42 +109,42 @@ public class PesquisaService
         // Coleta todos os nomes de fontes de forma deduplicada de cada propriedade técnica
         foreach (var spec in carro.Especificacoes)
         {
-            nomesFontes.UnionWith(spec.Potencia.HistoricoFontes.Select(f => f.NomeFontePython));
-            fontesIdsColetor(spec.Torque.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(spec.PotenciaRpm.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(spec.TorqueRpm.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(spec.Transmissao.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(spec.Tracao.HistoricoFontes, nomesFontes);
+            nomesFontes.UnionWith(spec.Potencia.Fontes.Select(f => f.Fonte));
+            fontesIdsColetor(spec.Torque?.Fontes, nomesFontes);
+            fontesIdsColetor(spec.PotenciaRpm?.Fontes, nomesFontes);
+            fontesIdsColetor(spec.TorqueRpm?.Fontes, nomesFontes);
+            fontesIdsColetor(spec.Transmissao?.Fontes, nomesFontes);
+            fontesIdsColetor(spec.Tracao?.Fontes, nomesFontes);
         }
 
         foreach (var cons in carro.Consumos)
         {
-            fontesIdsColetor(cons.Cidade.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(cons.Estrada.HistoricoFontes, nomesFontes);
+            fontesIdsColetor(cons.Cidade?.Fontes, nomesFontes);
+            fontesIdsColetor(cons.Estrada?.Fontes, nomesFontes);
         }
 
         foreach (var dim in carro.Dimensoes)
         {
-            fontesIdsColetor(dim.Comprimento.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(dim.Largura.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(dim.Altura.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(dim.EntreEixos.HistoricoFontes, nomesFontes);
+            fontesIdsColetor(dim.Comprimento?.Fontes, nomesFontes);
+            fontesIdsColetor(dim.Largura?.Fontes, nomesFontes);
+            fontesIdsColetor(dim.Altura?.Fontes, nomesFontes);
+            fontesIdsColetor(dim.EntreEixos?.Fontes, nomesFontes);
         }
 
         foreach (var pneu in carro.Pneus)
         {
-            fontesIdsColetor(pneu.Tipo.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(pneu.Aro.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(pneu.Largura.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(pneu.Perfil.HistoricoFontes, nomesFontes);
+            fontesIdsColetor(pneu.Tipo?.Fontes, nomesFontes);
+            fontesIdsColetor(pneu.Aro?.Fontes, nomesFontes);
+            fontesIdsColetor(pneu.Largura?.Fontes, nomesFontes);
+            fontesIdsColetor(pneu.Perfil?.Fontes, nomesFontes);
         }
 
         foreach (var extra in carro.Extras)
         {
-            fontesIdsColetor(extra.CapacidadeTanque.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(extra.TipoCombustivel.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(extra.CapacidadeCarga.HistoricoFontes, nomesFontes);
-            fontesIdsColetor(extra.CapacidadeReboque.HistoricoFontes, nomesFontes);
+            fontesIdsColetor(extra.CapacidadeTanque?.Fontes, nomesFontes);
+            fontesIdsColetor(extra.TipoCombustivel?.Fontes, nomesFontes);
+            fontesIdsColetor(extra.CapacidadeCarga?.Fontes, nomesFontes);
+            fontesIdsColetor(extra.CapacidadeReboque?.Fontes, nomesFontes);
         }
 
         var listaNomesFiltrados = nomesFontes.Where(n => !string.IsNullOrEmpty(n)).ToList();
@@ -177,42 +179,42 @@ public class PesquisaService
         // Realiza o vínculo forçado injetando os IDs corretos de banco nas estruturas JSON locais de histórico
         foreach (var spec in carro.Especificacoes)
         {
-            VincularIdLocal(spec.Potencia.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(spec.Torque.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(spec.PotenciaRpm.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(spec.TorqueRpm.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(spec.Transmissao.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(spec.Tracao.HistoricoFontes, fontesNoBanco);
+            VincularIdLocal(spec.Potencia.Fontes, fontesNoBanco);
+            VincularIdLocal(spec.Torque.Fontes, fontesNoBanco);
+            VincularIdLocal(spec.PotenciaRpm.Fontes, fontesNoBanco);
+            VincularIdLocal(spec.TorqueRpm.Fontes, fontesNoBanco);
+            VincularIdLocal(spec.Transmissao.Fontes, fontesNoBanco);
+            VincularIdLocal(spec.Tracao.Fontes, fontesNoBanco);
         }
 
         foreach (var cons in carro.Consumos)
         {
-            VincularIdLocal(cons.Cidade.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(cons.Estrada.HistoricoFontes, fontesNoBanco);
+            VincularIdLocal(cons.Cidade.Fontes, fontesNoBanco);
+            VincularIdLocal(cons.Estrada.Fontes, fontesNoBanco);
         }
 
         foreach (var dim in carro.Dimensoes)
         {
-            VincularIdLocal(dim.Comprimento.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(dim.Largura.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(dim.Altura.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(dim.EntreEixos.HistoricoFontes, fontesNoBanco);
+            VincularIdLocal(dim.Comprimento.Fontes, fontesNoBanco);
+            VincularIdLocal(dim.Largura.Fontes, fontesNoBanco);
+            VincularIdLocal(dim.Altura.Fontes, fontesNoBanco);
+            VincularIdLocal(dim.EntreEixos.Fontes, fontesNoBanco);
         }
 
         foreach (var pneu in carro.Pneus)
         {
-            VincularIdLocal(pneu.Tipo.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(pneu.Aro.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(pneu.Largura.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(pneu.Perfil.HistoricoFontes, fontesNoBanco);
+            VincularIdLocal(pneu.Tipo.Fontes, fontesNoBanco);
+            VincularIdLocal(pneu.Aro.Fontes, fontesNoBanco);
+            VincularIdLocal(pneu.Largura.Fontes, fontesNoBanco);
+            VincularIdLocal(pneu.Perfil.Fontes, fontesNoBanco);
         }
 
         foreach (var extra in carro.Extras)
         {
-            VincularIdLocal(extra.CapacidadeTanque.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(extra.TipoCombustivel.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(extra.CapacidadeCarga.HistoricoFontes, fontesNoBanco);
-            VincularIdLocal(extra.CapacidadeReboque.HistoricoFontes, fontesNoBanco);
+            VincularIdLocal(extra.CapacidadeTanque.Fontes, fontesNoBanco);
+            VincularIdLocal(extra.TipoCombustivel.Fontes, fontesNoBanco);
+            VincularIdLocal(extra.CapacidadeCarga.Fontes, fontesNoBanco);
+            VincularIdLocal(extra.CapacidadeReboque.Fontes, fontesNoBanco);
         }
     }
 
@@ -245,7 +247,7 @@ public class PesquisaService
     {
         if (fontes != null)
         {
-            coletor.UnionWith(fontes.Select(f => ExtrairDominioPrincipal(f.NomeFontePython)));
+            coletor.UnionWith(fontes.Select(f => ExtrairDominioPrincipal(f.Fonte)));
         }
     }
 
@@ -254,16 +256,16 @@ public class PesquisaService
         if (fontes == null) return;
         foreach (var f in fontes)
         {
-            if (string.IsNullOrEmpty(f.NomeFontePython)) continue;
+            if (string.IsNullOrEmpty(f.Fonte)) continue;
 
             // 🛡️ APLICA A BLINDAGEM AQUI TAMBÉM:
-            string dominioLimpo = ExtrairDominioPrincipal(f.NomeFontePython);
+            string dominioLimpo = ExtrairDominioPrincipal(f.Fonte);
 
             if (catalogo.TryGetValue(dominioLimpo, out int id))
             {
                 f.FonteId = id;
                 // Opcional: Você pode substituir o nome sujo pelo nome limpo direto no objeto para manter o banco padronizado
-                f.NomeFontePython = dominioLimpo;
+                f.Fonte = dominioLimpo;
             }
         }
     }
@@ -274,42 +276,42 @@ public class PesquisaService
 
         foreach (var spec in carro.Especificacoes)
         {
-            fontesIds.UnionWith(spec.Potencia.HistoricoFontes.Select(p => p.FonteId));
-            fontesIds.UnionWith(spec.Torque.HistoricoFontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(spec.PotenciaRpm.HistoricoFontes.Select(pr => pr.FonteId));
-            fontesIds.UnionWith(spec.TorqueRpm.HistoricoFontes.Select(tr => tr.FonteId));
-            fontesIds.UnionWith(spec.Transmissao.HistoricoFontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(spec.Tracao.HistoricoFontes.Select(t => t.FonteId));
+            fontesIds.UnionWith(spec.Potencia?.Fontes.Select(p => p.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(spec.Torque?.Fontes.Select(t => t.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(spec.PotenciaRpm?.Fontes.Select(pr => pr.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(spec.TorqueRpm?.Fontes.Select(tr => tr.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(spec.Transmissao?.Fontes.Select(t => t.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(spec.Tracao?.Fontes.Select(t => t.FonteId) ?? Enumerable.Empty<int>());
         }
 
         foreach (var cons in carro.Consumos)
         {
-            fontesIds.UnionWith(cons.Cidade.HistoricoFontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(cons.Estrada.HistoricoFontes.Select(e => e.FonteId));
+            fontesIds.UnionWith(cons.Cidade?.Fontes.Select(c => c.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(cons.Estrada?.Fontes.Select(e => e.FonteId) ?? Enumerable.Empty<int>());
         }
 
         foreach (var dim in carro.Dimensoes)
         {
-            fontesIds.UnionWith(dim.Comprimento.HistoricoFontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(dim.Largura.HistoricoFontes.Select(l => l.FonteId));
-            fontesIds.UnionWith(dim.Altura.HistoricoFontes.Select(a => a.FonteId));
-            fontesIds.UnionWith(dim.EntreEixos.HistoricoFontes.Select(e => e.FonteId));
+            fontesIds.UnionWith(dim.Comprimento?.Fontes.Select(c => c.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(dim.Largura?.Fontes.Select(l => l.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(dim.Altura?.Fontes.Select(a => a.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(dim.EntreEixos?.Fontes.Select(e => e.FonteId) ?? Enumerable.Empty<int>());
         }
 
         foreach (var pneu in carro.Pneus)
         {
-            fontesIds.UnionWith(pneu.Tipo.HistoricoFontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(pneu.Aro.HistoricoFontes.Select(a => a.FonteId));
-            fontesIds.UnionWith(pneu.Largura.HistoricoFontes.Select(l => l.FonteId));
-            fontesIds.UnionWith(pneu.Perfil.HistoricoFontes.Select(p => p.FonteId));
+            fontesIds.UnionWith(pneu.Tipo?.Fontes.Select(t => t.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(pneu.Aro?.Fontes.Select(a => a.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(pneu.Largura?.Fontes.Select(l => l.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(pneu.Perfil?.Fontes.Select(p => p.FonteId) ?? Enumerable.Empty<int>());
         }
 
         foreach (var extra in carro.Extras)
         {
-            fontesIds.UnionWith(extra.CapacidadeTanque.HistoricoFontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(extra.TipoCombustivel.HistoricoFontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(extra.CapacidadeCarga.HistoricoFontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(extra.CapacidadeReboque.HistoricoFontes.Select(c => c.FonteId));
+            fontesIds.UnionWith(extra.CapacidadeTanque?.Fontes.Select(c => c.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(extra.TipoCombustivel?.Fontes.Select(t => t.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(extra.CapacidadeCarga?.Fontes.Select(c => c.FonteId) ?? Enumerable.Empty<int>());
+            fontesIds.UnionWith(extra.CapacidadeReboque?.Fontes.Select(c => c.FonteId) ?? Enumerable.Empty<int>());
         }
 
         if (fontesIds.Count > 0)

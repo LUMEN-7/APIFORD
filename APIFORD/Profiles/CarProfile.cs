@@ -16,8 +16,25 @@ public class CarroPerfil : Profile
     public CarroPerfil()
     {
         // Mapeamento genérico para a estrutura open-ended de histórico do Scraping
-        CreateMap(typeof(PropriedadeScrapingDTO<>), typeof(PropriedadeScraping<>)).ReverseMap();
-        CreateMap(typeof(ItemFonteScrapingDTO<>), typeof(ItemFonteScraping<>)).ReverseMap();
+        // Ensina o AutoMapper: Pegue "Fontes" do DTO e grave em "Fontes" da Entidade
+        // 1. Mapeamento das listas (Itens)
+        CreateMap<ItemFonteScrapingDTO<int>, ItemFonteScraping<int>>().ReverseMap();
+        CreateMap<ItemFonteScrapingDTO<string>, ItemFonteScraping<string>>().ReverseMap();
+        CreateMap<ItemFonteScrapingDTO<double>, ItemFonteScraping<double>>().ReverseMap();
+        CreateMap<ItemFonteScrapingDTO<decimal>, ItemFonteScraping<decimal>>().ReverseMap();
+
+        // 2. Mapeamento dos Envelopes FORÇANDO A CÓPIA DA LISTA
+        CreateMap<PropriedadeScrapingDTO<int>, PropriedadeScraping<int>>()
+            .ForMember(dest => dest.Fontes, opt => opt.MapFrom(src => src.Fontes)).ReverseMap();
+
+        CreateMap<PropriedadeScrapingDTO<string>, PropriedadeScraping<string>>()
+            .ForMember(dest => dest.Fontes, opt => opt.MapFrom(src => src.Fontes)).ReverseMap();
+
+        CreateMap<PropriedadeScrapingDTO<double>, PropriedadeScraping<double>>()
+            .ForMember(dest => dest.Fontes, opt => opt.MapFrom(src => src.Fontes)).ReverseMap();
+
+        CreateMap<PropriedadeScrapingDTO<decimal>, PropriedadeScraping<decimal>>()
+            .ForMember(dest => dest.Fontes, opt => opt.MapFrom(src => src.Fontes)).ReverseMap();
 
         // 1. MAPEAMENTO DE CRIAÇÃO (POST)
         CreateMap<CreateCarroDTO, Carro>()

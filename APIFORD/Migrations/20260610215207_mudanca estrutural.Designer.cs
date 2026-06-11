@@ -629,7 +629,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ConsumoId")
                                 .HasConstraintName("fk_consumos_consumos_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>ConsumoId");
 
@@ -644,7 +644,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -658,7 +658,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_consumos_consumos_propriedade_scraping_string_consumo_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "Estrada", b1 =>
@@ -681,7 +681,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ConsumoId")
                                 .HasConstraintName("fk_consumos_consumos_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>ConsumoId");
 
@@ -696,7 +696,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -710,7 +710,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_consumos_consumos_propriedade_scraping_string_consumo_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.Navigation("Carro");
@@ -751,7 +751,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("DimensaoId")
                                 .HasConstraintName("fk_dimensoes_dimensoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<decimal>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<decimal>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<decimal>DimensaoId");
 
@@ -766,7 +766,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<decimal>("Valor");
@@ -780,7 +780,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_dimensoes_dimensoes_propriedade_scraping_decimal_dimensao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("PropriedadeScraping", "Comprimento", b1 =>
@@ -804,7 +804,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("DimensaoId")
                                 .HasConstraintName("fk_dimensoes_dimensoes_dimensao_id");
 
-                            b1.OwnsMany("ItemFonteScraping", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("ItemFonteScraping", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScrapingDimensaoId");
 
@@ -819,7 +819,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<decimal>("Valor");
@@ -834,7 +834,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_dimensoes_dimensoes_propriedade_scraping_dimensao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<decimal>", "EntreEixos", b1 =>
@@ -857,7 +857,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("DimensaoId")
                                 .HasConstraintName("fk_dimensoes_dimensoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<decimal>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<decimal>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<decimal>DimensaoId");
 
@@ -872,7 +872,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<decimal>("Valor");
@@ -886,7 +886,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_dimensoes_dimensoes_propriedade_scraping_decimal_dimensao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<decimal>", "Largura", b1 =>
@@ -909,7 +909,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("DimensaoId")
                                 .HasConstraintName("fk_dimensoes_dimensoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<decimal>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<decimal>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<decimal>DimensaoId");
 
@@ -924,7 +924,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<decimal>("Valor");
@@ -938,7 +938,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_dimensoes_dimensoes_propriedade_scraping_decimal_dimensao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.Navigation("Altura")
@@ -986,7 +986,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("EspecificacaoId")
                                 .HasConstraintName("fk_especificacoes_especificacoes_especificacao_id");
 
-                            b1.OwnsMany("ItemFonteScraping", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("ItemFonteScraping", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScrapingEspecificacaoId");
 
@@ -1001,7 +1001,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1016,7 +1016,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_especificacoes_especificacoes_propriedade_scraping_especificacao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<int>", "PotenciaRpm", b1 =>
@@ -1039,7 +1039,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("EspecificacaoId")
                                 .HasConstraintName("fk_especificacoes_especificacoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<int>EspecificacaoId");
 
@@ -1054,7 +1054,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1068,7 +1068,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_especificacoes_especificacoes_propriedade_scraping_int_especificacao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<int>", "Torque", b1 =>
@@ -1091,7 +1091,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("EspecificacaoId")
                                 .HasConstraintName("fk_especificacoes_especificacoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<int>EspecificacaoId");
 
@@ -1106,7 +1106,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1120,7 +1120,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_especificacoes_especificacoes_propriedade_scraping_int_especificacao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<int>", "TorqueRpm", b1 =>
@@ -1143,7 +1143,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("EspecificacaoId")
                                 .HasConstraintName("fk_especificacoes_especificacoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<int>EspecificacaoId");
 
@@ -1158,7 +1158,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1172,7 +1172,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_especificacoes_especificacoes_propriedade_scraping_int_especificacao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "Tracao", b1 =>
@@ -1195,7 +1195,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("EspecificacaoId")
                                 .HasConstraintName("fk_especificacoes_especificacoes_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>EspecificacaoId");
 
@@ -1210,7 +1210,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1224,7 +1224,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_especificacoes_especificacoes_propriedade_scraping_string_especificacao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("PropriedadeScraping", "Transmissao", b1 =>
@@ -1248,7 +1248,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("EspecificacaoId")
                                 .HasConstraintName("fk_especificacoes_especificacoes_especificacao_id");
 
-                            b1.OwnsMany("ItemFonteScraping", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("ItemFonteScraping", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScrapingEspecificacaoId");
 
@@ -1263,7 +1263,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1278,7 +1278,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_especificacoes_especificacoes_propriedade_scraping_especificacao_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.Navigation("Carro");
@@ -1331,7 +1331,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>ExtraId");
 
@@ -1346,7 +1346,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1360,7 +1360,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "CapacidadeReboque", b1 =>
@@ -1383,7 +1383,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>ExtraId");
 
@@ -1398,7 +1398,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1412,7 +1412,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "CapacidadeTanque", b1 =>
@@ -1435,7 +1435,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>ExtraId");
 
@@ -1450,7 +1450,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1464,7 +1464,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "TipoCombustivel", b1 =>
@@ -1487,7 +1487,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>ExtraId");
 
@@ -1502,7 +1502,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1516,7 +1516,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.Navigation("CapacidadeCarga")
@@ -1584,7 +1584,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("PneuId")
                                 .HasConstraintName("fk_pneus_pneus_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<int>PneuId");
 
@@ -1599,7 +1599,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1613,7 +1613,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_pneus_pneus_propriedade_scraping_int_pneu_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<int>", "Largura", b1 =>
@@ -1636,7 +1636,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("PneuId")
                                 .HasConstraintName("fk_pneus_pneus_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<int>PneuId");
 
@@ -1651,7 +1651,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1665,7 +1665,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_pneus_pneus_propriedade_scraping_int_pneu_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<int>", "Perfil", b1 =>
@@ -1688,7 +1688,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("PneuId")
                                 .HasConstraintName("fk_pneus_pneus_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<int>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<int>PneuId");
 
@@ -1703,7 +1703,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<int>("Valor");
@@ -1717,7 +1717,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_pneus_pneus_propriedade_scraping_int_pneu_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "Tipo", b1 =>
@@ -1740,7 +1740,7 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("PneuId")
                                 .HasConstraintName("fk_pneus_pneus_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "HistoricoFontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
                                 {
                                     b2.Property<int>("PropriedadeScraping<string>PneuId");
 
@@ -1755,7 +1755,7 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("NomeFontePython")
+                                    b2.Property<string>("Fonte")
                                         .IsRequired();
 
                                     b2.Property<string>("Valor");
@@ -1769,7 +1769,7 @@ namespace APIFORD.Migrations
                                         .HasConstraintName("fk_pneus_pneus_propriedade_scraping_string_pneu_id");
                                 });
 
-                            b1.Navigation("HistoricoFontes");
+                            b1.Navigation("Fontes");
                         });
 
                     b.Navigation("Aro")

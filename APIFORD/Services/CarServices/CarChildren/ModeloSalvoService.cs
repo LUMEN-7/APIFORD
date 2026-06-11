@@ -56,12 +56,12 @@ public class ModeloSalvoService : BaseService<ModeloSalvo, CreateModeloSalvoDTO,
         {
             foreach (var spec in carro.Especificacoes)
             {
-                fontesIds.UnionWith(spec.Potencia.HistoricoFontes.Select(p => p.FonteId));
-                fontesIds.UnionWith(spec.Torque.HistoricoFontes.Select(t => t.FonteId));
-                fontesIds.UnionWith(spec.PotenciaRpm.HistoricoFontes.Select(pr => pr.FonteId));
-                fontesIds.UnionWith(spec.TorqueRpm.HistoricoFontes.Select(tr => tr.FonteId));
-                fontesIds.UnionWith(spec.Transmissao.HistoricoFontes.Select(t => t.FonteId));
-                fontesIds.UnionWith(spec.Tracao.HistoricoFontes.Select(t => t.FonteId));
+                fontesIds.UnionWith(spec.Potencia.Fontes.Select(p => p.FonteId));
+                fontesIds.UnionWith(spec.Torque.Fontes.Select(t => t.FonteId));
+                fontesIds.UnionWith(spec.PotenciaRpm.Fontes.Select(pr => pr.FonteId));
+                fontesIds.UnionWith(spec.TorqueRpm.Fontes.Select(tr => tr.FonteId));
+                fontesIds.UnionWith(spec.Transmissao.Fontes.Select(t => t.FonteId));
+                fontesIds.UnionWith(spec.Tracao.Fontes.Select(t => t.FonteId));
             }
         }
 
@@ -69,8 +69,8 @@ public class ModeloSalvoService : BaseService<ModeloSalvo, CreateModeloSalvoDTO,
         {
             foreach (var cons in carro.Consumos)
             {
-                fontesIds.UnionWith(cons.Cidade.HistoricoFontes.Select(c => c.FonteId));
-                fontesIds.UnionWith(cons.Estrada.HistoricoFontes.Select(e => e.FonteId));
+                fontesIds.UnionWith(cons.Cidade.Fontes.Select(c => c.FonteId));
+                fontesIds.UnionWith(cons.Estrada.Fontes.Select(e => e.FonteId));
             }
         }
 
@@ -78,10 +78,10 @@ public class ModeloSalvoService : BaseService<ModeloSalvo, CreateModeloSalvoDTO,
         {
             foreach (var dim in carro.Dimensoes)
             {
-                fontesIds.UnionWith(dim.Comprimento.HistoricoFontes.Select(c => c.FonteId));
-                fontesIds.UnionWith(dim.Largura.HistoricoFontes.Select(l => l.FonteId));
-                fontesIds.UnionWith(dim.Altura.HistoricoFontes.Select(a => a.FonteId));
-                fontesIds.UnionWith(dim.EntreEixos.HistoricoFontes.Select(e => e.FonteId));
+                fontesIds.UnionWith(dim.Comprimento.Fontes.Select(c => c.FonteId));
+                fontesIds.UnionWith(dim.Largura.Fontes.Select(l => l.FonteId));
+                fontesIds.UnionWith(dim.Altura.Fontes.Select(a => a.FonteId));
+                fontesIds.UnionWith(dim.EntreEixos.Fontes.Select(e => e.FonteId));
             }
         }
 
@@ -89,10 +89,10 @@ public class ModeloSalvoService : BaseService<ModeloSalvo, CreateModeloSalvoDTO,
         {
             foreach (var pneu in carro.Pneus)
             {
-                fontesIds.UnionWith(pneu.Tipo.HistoricoFontes.Select(t => t.FonteId));
-                fontesIds.UnionWith(pneu.Aro.HistoricoFontes.Select(a => a.FonteId));
-                fontesIds.UnionWith(pneu.Largura.HistoricoFontes.Select(l => l.FonteId));
-                fontesIds.UnionWith(pneu.Perfil.HistoricoFontes.Select(p => p.FonteId));
+                fontesIds.UnionWith(pneu.Tipo.Fontes.Select(t => t.FonteId));
+                fontesIds.UnionWith(pneu.Aro.Fontes.Select(a => a.FonteId));
+                fontesIds.UnionWith(pneu.Largura.Fontes.Select(l => l.FonteId));
+                fontesIds.UnionWith(pneu.Perfil.Fontes.Select(p => p.FonteId));
             }
         }
 
@@ -100,10 +100,10 @@ public class ModeloSalvoService : BaseService<ModeloSalvo, CreateModeloSalvoDTO,
         {
             foreach (var extra in carro.Extras)
             {
-                fontesIds.UnionWith(extra.CapacidadeTanque.HistoricoFontes.Select(c => c.FonteId));
-                fontesIds.UnionWith(extra.TipoCombustivel.HistoricoFontes.Select(t => t.FonteId));
-                fontesIds.UnionWith(extra.CapacidadeCarga.HistoricoFontes.Select(c => c.FonteId));
-                fontesIds.UnionWith(extra.CapacidadeReboque.HistoricoFontes.Select(c => c.FonteId));
+                fontesIds.UnionWith(extra.CapacidadeTanque.Fontes.Select(c => c.FonteId));
+                fontesIds.UnionWith(extra.TipoCombustivel.Fontes.Select(t => t.FonteId));
+                fontesIds.UnionWith(extra.CapacidadeCarga.Fontes.Select(c => c.FonteId));
+                fontesIds.UnionWith(extra.CapacidadeReboque.Fontes.Select(c => c.FonteId));
             }
         }
 
