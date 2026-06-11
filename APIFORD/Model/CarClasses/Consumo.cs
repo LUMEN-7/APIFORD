@@ -9,8 +9,8 @@ public class Consumo
     public bool Excluido { get; set; } = false;
     public DateTime DataColeta { get; set; } = DateTime.UtcNow;
 
-    public PropriedadeScraping<string> Cidade { get; set; } = new();
-    public PropriedadeScraping<string> Estrada { get; set; } = new();
+    public PropriedadeScraping<double> Cidade { get; set; } = new();
+    public PropriedadeScraping<double> Estrada { get; set; } = new();
 
     public virtual Carro Carro { get; set; } = null!;
 }
