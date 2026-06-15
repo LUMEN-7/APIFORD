@@ -9,10 +9,10 @@ public class Extra
     public bool Excluido { get; set; } = false;
     public DateTime DataColeta { get; set; } = DateTime.UtcNow;
 
-    public PropriedadeScraping<string> CapacidadeTanque { get; set; } = new();
+    public PropriedadeScraping<double> CapacidadeTanque { get; set; } = new();
     public PropriedadeScraping<string> TipoCombustivel { get; set; } = new();
-    public PropriedadeScraping<string> CapacidadeCarga { get; set; } = new();
-    public PropriedadeScraping<string> CapacidadeReboque { get; set; } = new();
+    public PropriedadeScraping<double> CapacidadeCarga { get; set; } = new();
+    public PropriedadeScraping<double> CapacidadeReboque { get; set; } = new();
 
     public virtual Carro Carro { get; set; } = null!;
 }

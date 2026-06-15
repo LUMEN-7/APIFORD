@@ -2,6 +2,6 @@
 
 public class UpdateConsumoDTO
 {
-    public PropriedadeScrapingDTO<string>? Cidade { get; set; }
-    public PropriedadeScrapingDTO<string>? Estrada { get; set; }
+    public PropriedadeScrapingDTO<double>? Cidade { get; set; }
+    public PropriedadeScrapingDTO<double>? Estrada { get; set; }
 }

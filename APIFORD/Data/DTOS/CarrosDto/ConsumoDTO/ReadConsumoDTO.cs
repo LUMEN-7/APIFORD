@@ -7,6 +7,6 @@ public class ReadConsumoDTO
     public bool Excluido { get; set; }
     public DateTime DataColeta { get; set; }
 
-    public PropriedadeScrapingDTO<string> Cidade { get; set; } = null!;
-    public PropriedadeScrapingDTO<string> Estrada { get; set; } = null!;
+    public PropriedadeScrapingDTO<double> Cidade { get; set; } = null!;
+    public PropriedadeScrapingDTO<double> Estrada { get; set; } = null!;
 }
