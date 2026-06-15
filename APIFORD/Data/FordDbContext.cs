@@ -5,6 +5,7 @@ using APIFORD.Model.CarroClasses;
 using APIFORD.Model.CarroClasses.Intermedians;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 public class FordDbContext : IdentityDbContext<User>
 {
@@ -23,6 +24,7 @@ public class FordDbContext : IdentityDbContext<User>
     public DbSet<Pneu> Pneus { get; set; }
     public DbSet<Extra> Extras { get; set; }
     public DbSet<CarroModo> CarroModos { get; set; }
+    public DbSet<Job> Jobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -94,6 +96,19 @@ public class FordDbContext : IdentityDbContext<User>
             entity.OwnsOne(e => e.TipoCombustivel, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
             entity.OwnsOne(e => e.CapacidadeCarga, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
             entity.OwnsOne(e => e.CapacidadeReboque, b => { b.ToJson(); b.OwnsMany(x => x.Fontes); });
+        });
+
+        builder.Entity<Job>(b =>
+        {
+            b.ToTable("jobs");
+            b.HasKey(x => x.Id).HasName("pk_jobs");
+            b.Property(x => x.Id).HasColumnName("id").HasDefaultValueSql("NEWID()");
+            b.Property(x => x.Status).HasColumnName("status").HasDefaultValue("pending");
+            b.Property(x => x.Payload).HasColumnName("payload");
+            b.Property(x => x.Result).HasColumnName("result");
+            b.Property(x => x.Error).HasColumnName("error");
+            b.Property(x => x.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("GETUTCDATE()");
+            b.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasDefaultValueSql("GETUTCDATE()");
         });
     }
 }

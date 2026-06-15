@@ -1,6 +1,4 @@
-﻿// ============================================================================
-// FILE: APIFORD/Services/Search/PesquisaService.cs
-// ============================================================================
+﻿// APIFORD/Services/Search/PesquisaService.cs
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -13,6 +11,7 @@ using AutoMapper;
 using APIFORD.Data;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Search;
+using APIFORD.Model;
 using APIFORD.Model.CarroClasses;
 using APIFORD.Model.CarroClasses.Intermedians;
 
@@ -24,6 +23,12 @@ public class PesquisaService
     private readonly FordDbContext _context;
     private readonly IMapper _mapper;
 
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+
     public PesquisaService(HttpClient httpClient, FordDbContext context, IMapper mapper)
     {
         _httpClient = httpClient;
@@ -31,52 +36,90 @@ public class PesquisaService
         _mapper = mapper;
     }
 
-    public async Task<ReadCarroDTO> Busca(BuscaDTO dto)
+    // -------------------------------------------------------------------------
+    // POST /Pesquisa/busca
+    // Envia o pedido ao Python e retorna o job_id imediatamente (~5ms)
+    // -------------------------------------------------------------------------
+    public async Task<Guid> IniciarBusca(BuscaDTO dto)
     {
-        var url = "http://127.0.0.1:8000/specs";
-
-        // 1. Consome a API em Python enviando o objeto de busca no corpo da requisição POST
-        var opcoesSerializacao = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
-        var response = await _httpClient.PostAsJsonAsync(url, dto);
+        var response = await _httpClient.PostAsJsonAsync("http://127.0.0.1:8000/specs", dto);
 
         if (!response.IsSuccessStatusCode)
+            throw new ApplicationException("Microserviço Python indisponível.");
+
+        var payload = await response.Content.ReadFromJsonAsync<PythonJobResponse>(_jsonOptions);
+
+        if (payload?.JobId == null)
+            throw new ApplicationException("Python não retornou job_id.");
+
+        return payload.JobId;
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /Pesquisa/jobs/{id}
+    // Checa o status do job. Se done, processa e salva o carro no banco.
+    // -------------------------------------------------------------------------
+    public async Task<JobStatusDTO> ChecarJob(Guid jobId)
+    {
+        // 1. Busca o job no banco local
+        var job = await _context.Jobs.FindAsync(jobId);
+        if (job == null)
+            return new JobStatusDTO { Status = "not_found" };
+
+        // 2. Se ainda está rodando, só retorna o status
+        if (job.Status is "pending" or "running")
+            return new JobStatusDTO { Status = job.Status };
+
+        // 3. Se deu erro, retorna o erro
+        if (job.Status == "error")
+            return new JobStatusDTO { Status = "error", Error = job.Error };
+
+        // 4. Se done mas o carro já foi salvo antes, só retorna done
+        if (job.Status == "done" && job.Result == null)
+            return new JobStatusDTO { Status = "done" };
+
+        // 5. Se done e ainda tem result pra processar, salva o carro agora
+        if (job.Status == "done" && job.Result != null)
         {
-            throw new ApplicationException("Falha crítica na orquestração: O microserviço de busca em Python está indisponível.");
+            var readCarroDto = await ProcessarESalvarCarro(job);
+
+            // Limpa o result do job após processar (já está no banco de carros)
+            job.Result = null;
+            job.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return new JobStatusDTO { Status = "done", Carro = readCarroDto };
         }
 
-        // 2. Deserializa o JSON estruturado diretamente para o DTO de criação do Carro
-        var createCarroDto = await response.Content.ReadFromJsonAsync<CreateCarroDTO>(opcoesSerializacao);
+        return new JobStatusDTO { Status = job.Status };
+    }
+
+    // -------------------------------------------------------------------------
+    // Processa o JSON do Python e salva o carro — mesma lógica de antes
+    // -------------------------------------------------------------------------
+    private async Task<ReadCarroDTO> ProcessarESalvarCarro(Job job)
+    {
+        var createCarroDto = JsonSerializer.Deserialize<CreateCarroDTO>(job.Result!, _jsonOptions);
         if (createCarroDto == null)
-        {
-            throw new ApplicationException("A resposta retornada pelo serviço de raspagem de dados está vazia.");
-        }
+            throw new ApplicationException("Resultado do job está vazio ou inválido.");
 
-        // 3. Converte o DTO recebido para a Entidade Carro do banco de dados
         var carroEntity = _mapper.Map<Carro>(createCarroDto);
 
-
-
-        // 4. Resolve o mapeamento automático dos modos de condução (Tabela Intermediária Relacional)
         if (createCarroDto.ModosCarro != null && createCarroDto.ModosCarro.Any())
         {
             foreach (var modoNome in createCarroDto.ModosCarro)
             {
                 var modoDb = await _context.Modos.FirstOrDefaultAsync(m => m.Tipo == modoNome);
                 if (modoDb != null)
-                {
                     carroEntity.ModosCarro.Add(new CarroModo { Carro = carroEntity, Modo = modoDb });
-                }
             }
         }
 
-        // 5. Varre o JSON aninhado recebido do Python, sincroniza as fontes textuais com a tb_fontes e injeta os IDs gerados
         await SincronizarEInjetarIdsDeFontesAsync(carroEntity);
 
-        // 6. Persiste o grafo completo com as tabelas satélites, modos relacionais e colunas JSON no SQL Server
         await _context.Carros.AddAsync(carroEntity);
         await _context.SaveChangesAsync();
 
-        // 7. Carrega o objeto atualizado do banco de dados incluindo os relacionamentos estruturados
         var carroCompleto = await _context.Carros
             .Include(c => c.Especificacoes)
             .Include(c => c.Consumos)
@@ -87,26 +130,22 @@ public class PesquisaService
             .FirstOrDefaultAsync(c => c.Id == carroEntity.Id);
 
         if (carroCompleto == null)
-        {
-            throw new KeyNotFoundException("Erro de persistência: O veículo foi processado mas não pôde ser recuperado do banco de dados.");
-        }
+            throw new KeyNotFoundException("Veículo processado mas não encontrado no banco.");
 
-        // 8. Mapeia para o ReadCarroDTO padrão de saída
         var readCarroDto = _mapper.Map<ReadCarroDTO>(carroCompleto);
-
-        // 9. Coleta os IDs de fontes gravados localmente para anexar o catálogo global de metadados das fontes no DTO
         await PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carroCompleto);
 
         return readCarroDto;
     }
 
-    
+    // -------------------------------------------------------------------------
+    // Métodos auxiliares — sem alteração em relação ao original
+    // -------------------------------------------------------------------------
 
     private async Task SincronizarEInjetarIdsDeFontesAsync(Carro carro)
     {
         var nomesFontes = new HashSet<string>();
 
-        // Coleta todos os nomes de fontes de forma deduplicada de cada propriedade técnica
         foreach (var spec in carro.Especificacoes)
         {
             nomesFontes.UnionWith(spec.Potencia.Fontes.Select(f => f.Fonte));
@@ -150,12 +189,10 @@ public class PesquisaService
         var listaNomesFiltrados = nomesFontes.Where(n => !string.IsNullOrEmpty(n)).ToList();
         if (!listaNomesFiltrados.Any()) return;
 
-        // Verifica quais fontes textuais já existem cadastradas no banco de dados
         var fontesNoBanco = await _context.Fontes
             .Where(f => listaNomesFiltrados.Contains(f.Nome))
             .ToDictionaryAsync(f => f.Nome, f => f.Id);
 
-        // Se houverem fontes inéditas vindas do robô Python, adiciona-as no catálogo global relacional
         var novasFontesUrls = listaNomesFiltrados.Where(nome => !fontesNoBanco.ContainsKey(nome)).ToList();
         if (novasFontesUrls.Any())
         {
@@ -171,12 +208,9 @@ public class PesquisaService
             await _context.SaveChangesAsync();
 
             foreach (var novaF in novasFontesEntidades)
-            {
                 fontesNoBanco.Add(novaF.Nome, novaF.Id);
-            }
         }
 
-        // Realiza o vínculo forçado injetando os IDs corretos de banco nas estruturas JSON locais de histórico
         foreach (var spec in carro.Especificacoes)
         {
             VincularIdLocal(spec.Potencia.Fontes, fontesNoBanco);
@@ -221,24 +255,16 @@ public class PesquisaService
     private string ExtrairDominioPrincipal(string textoFonte)
     {
         if (string.IsNullOrWhiteSpace(textoFonte)) return string.Empty;
-
         try
         {
-            // Se a string vier sem "http", o C# não consegue recortar. Adicionamos um falso só para a leitura.
             string urlParaLeitura = textoFonte.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                 ? textoFonte
                 : $"https://{textoFonte}";
 
             if (Uri.TryCreate(urlParaLeitura, UriKind.Absolute, out var uri))
-            {
-                // O ".Host" pega apenas a raiz do site. O Replace limpa o "www." caso exista.
                 return uri.Host.Replace("www.", "").ToLowerInvariant();
-            }
         }
-        catch
-        {
-            // Se der algum erro muito bizarro na string, retorna ela mesma por segurança
-        }
+        catch { }
 
         return textoFonte.ToLowerInvariant();
     }
@@ -246,9 +272,7 @@ public class PesquisaService
     private void fontesIdsColetor<T>(List<ItemFonteScraping<T>> fontes, HashSet<string> coletor)
     {
         if (fontes != null)
-        {
             coletor.UnionWith(fontes.Select(f => ExtrairDominioPrincipal(f.Fonte)));
-        }
     }
 
     private void VincularIdLocal<T>(List<ItemFonteScraping<T>> fontes, Dictionary<string, int> catalogo)
@@ -257,14 +281,10 @@ public class PesquisaService
         foreach (var f in fontes)
         {
             if (string.IsNullOrEmpty(f.Fonte)) continue;
-
-            // 🛡️ APLICA A BLINDAGEM AQUI TAMBÉM:
             string dominioLimpo = ExtrairDominioPrincipal(f.Fonte);
-
             if (catalogo.TryGetValue(dominioLimpo, out int id))
             {
                 f.FonteId = id;
-                // Opcional: Você pode substituir o nome sujo pelo nome limpo direto no objeto para manter o banco padronizado
                 f.Fonte = dominioLimpo;
             }
         }
@@ -323,5 +343,7 @@ public class PesquisaService
             dto.Fontes = _mapper.Map<List<ReadFonteDTO>>(listaFontesEntidade);
         }
     }
-    
 }
+
+// DTOs internos para comunicação com o Python
+internal record PythonJobResponse(Guid JobId);
