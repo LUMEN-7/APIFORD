@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    [Migration("20260615194728_AddJobsTable")]
+    [Migration("20260616164045_AddJobsTable")]
     partial class AddJobsTable
     {
         /// <inheritdoc />
@@ -262,6 +262,54 @@ namespace APIFORD.Migrations
                         .HasDatabaseName("ix_pneus_carro_id");
 
                     b.ToTable("pneus", (string)null);
+                });
+
+            modelBuilder.Entity("APIFORD.Model.Job", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("error");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("payload");
+
+                    b.Property<string>("Result")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("result");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("pending")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_jobs");
+
+                    b.ToTable("jobs", (string)null);
                 });
 
             modelBuilder.Entity("APIFORD.Model.ModeloSalvo", b =>
@@ -609,7 +657,7 @@ namespace APIFORD.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_consumos_carros_carro_id");
 
-                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "Cidade", b1 =>
+                    b.OwnsOne("PropriedadeScraping", "Cidade", b1 =>
                         {
                             b1.Property<int>("ConsumoId");
 
@@ -617,7 +665,8 @@ namespace APIFORD.Migrations
 
                             b1.Property<bool>("Conflito");
 
-                            b1.HasKey("ConsumoId");
+                            b1.HasKey("ConsumoId")
+                                .HasName("pk_consumos");
 
                             b1.ToTable("consumos");
 
@@ -627,11 +676,11 @@ namespace APIFORD.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("ConsumoId")
-                                .HasConstraintName("fk_consumos_consumos_id");
+                                .HasConstraintName("fk_consumos_consumos_consumo_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
+                            b1.OwnsMany("ItemFonteScraping", "Fontes", b2 =>
                                 {
-                                    b2.Property<int>("PropriedadeScraping<string>ConsumoId");
+                                    b2.Property<int>("PropriedadeScrapingConsumoId");
 
                                     b2.Property<int>("__synthesizedOrdinal")
                                         .ValueGeneratedOnAddOrUpdate();
@@ -647,21 +696,22 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("Valor");
+                                    b2.Property<double>("Valor");
 
-                                    b2.HasKey("PropriedadeScraping<string>ConsumoId", "__synthesizedOrdinal");
+                                    b2.HasKey("PropriedadeScrapingConsumoId", "__synthesizedOrdinal")
+                                        .HasName("pk_consumos");
 
                                     b2.ToTable("consumos");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("PropriedadeScraping<string>ConsumoId")
-                                        .HasConstraintName("fk_consumos_consumos_propriedade_scraping_string_consumo_id");
+                                        .HasForeignKey("PropriedadeScrapingConsumoId")
+                                        .HasConstraintName("fk_consumos_consumos_propriedade_scraping_consumo_id");
                                 });
 
                             b1.Navigation("Fontes");
                         });
 
-                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "Estrada", b1 =>
+                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<double>", "Estrada", b1 =>
                         {
                             b1.Property<int>("ConsumoId");
 
@@ -681,9 +731,9 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ConsumoId")
                                 .HasConstraintName("fk_consumos_consumos_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<double>", "Fontes", b2 =>
                                 {
-                                    b2.Property<int>("PropriedadeScraping<string>ConsumoId");
+                                    b2.Property<int>("PropriedadeScraping<double>ConsumoId");
 
                                     b2.Property<int>("__synthesizedOrdinal")
                                         .ValueGeneratedOnAddOrUpdate();
@@ -699,15 +749,15 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("Valor");
+                                    b2.Property<double>("Valor");
 
-                                    b2.HasKey("PropriedadeScraping<string>ConsumoId", "__synthesizedOrdinal");
+                                    b2.HasKey("PropriedadeScraping<double>ConsumoId", "__synthesizedOrdinal");
 
                                     b2.ToTable("consumos");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("PropriedadeScraping<string>ConsumoId")
-                                        .HasConstraintName("fk_consumos_consumos_propriedade_scraping_string_consumo_id");
+                                        .HasForeignKey("PropriedadeScraping<double>ConsumoId")
+                                        .HasConstraintName("fk_consumos_consumos_propriedade_scraping_double_consumo_id");
                                 });
 
                             b1.Navigation("Fontes");
@@ -1311,7 +1361,7 @@ namespace APIFORD.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_extras_carros_carro_id");
 
-                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "CapacidadeCarga", b1 =>
+                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<double>", "CapacidadeCarga", b1 =>
                         {
                             b1.Property<int>("ExtraId");
 
@@ -1331,9 +1381,9 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<double>", "Fontes", b2 =>
                                 {
-                                    b2.Property<int>("PropriedadeScraping<string>ExtraId");
+                                    b2.Property<int>("PropriedadeScraping<double>ExtraId");
 
                                     b2.Property<int>("__synthesizedOrdinal")
                                         .ValueGeneratedOnAddOrUpdate();
@@ -1349,21 +1399,21 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("Valor");
+                                    b2.Property<double>("Valor");
 
-                                    b2.HasKey("PropriedadeScraping<string>ExtraId", "__synthesizedOrdinal");
+                                    b2.HasKey("PropriedadeScraping<double>ExtraId", "__synthesizedOrdinal");
 
                                     b2.ToTable("extras");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("PropriedadeScraping<string>ExtraId")
-                                        .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
+                                        .HasForeignKey("PropriedadeScraping<double>ExtraId")
+                                        .HasConstraintName("fk_extras_extras_propriedade_scraping_double_extra_id");
                                 });
 
                             b1.Navigation("Fontes");
                         });
 
-                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "CapacidadeReboque", b1 =>
+                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<double>", "CapacidadeReboque", b1 =>
                         {
                             b1.Property<int>("ExtraId");
 
@@ -1383,9 +1433,9 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<double>", "Fontes", b2 =>
                                 {
-                                    b2.Property<int>("PropriedadeScraping<string>ExtraId");
+                                    b2.Property<int>("PropriedadeScraping<double>ExtraId");
 
                                     b2.Property<int>("__synthesizedOrdinal")
                                         .ValueGeneratedOnAddOrUpdate();
@@ -1401,21 +1451,21 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("Valor");
+                                    b2.Property<double>("Valor");
 
-                                    b2.HasKey("PropriedadeScraping<string>ExtraId", "__synthesizedOrdinal");
+                                    b2.HasKey("PropriedadeScraping<double>ExtraId", "__synthesizedOrdinal");
 
                                     b2.ToTable("extras");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("PropriedadeScraping<string>ExtraId")
-                                        .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
+                                        .HasForeignKey("PropriedadeScraping<double>ExtraId")
+                                        .HasConstraintName("fk_extras_extras_propriedade_scraping_double_extra_id");
                                 });
 
                             b1.Navigation("Fontes");
                         });
 
-                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<string>", "CapacidadeTanque", b1 =>
+                    b.OwnsOne("APIFORD.Model.CarroClasses.PropriedadeScraping<double>", "CapacidadeTanque", b1 =>
                         {
                             b1.Property<int>("ExtraId");
 
@@ -1435,9 +1485,9 @@ namespace APIFORD.Migrations
                                 .HasForeignKey("ExtraId")
                                 .HasConstraintName("fk_extras_extras_id");
 
-                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<string>", "Fontes", b2 =>
+                            b1.OwnsMany("APIFORD.Model.CarroClasses.ItemFonteScraping<double>", "Fontes", b2 =>
                                 {
-                                    b2.Property<int>("PropriedadeScraping<string>ExtraId");
+                                    b2.Property<int>("PropriedadeScraping<double>ExtraId");
 
                                     b2.Property<int>("__synthesizedOrdinal")
                                         .ValueGeneratedOnAddOrUpdate();
@@ -1453,15 +1503,15 @@ namespace APIFORD.Migrations
 
                                     b2.Property<int>("FonteId");
 
-                                    b2.Property<string>("Valor");
+                                    b2.Property<double>("Valor");
 
-                                    b2.HasKey("PropriedadeScraping<string>ExtraId", "__synthesizedOrdinal");
+                                    b2.HasKey("PropriedadeScraping<double>ExtraId", "__synthesizedOrdinal");
 
                                     b2.ToTable("extras");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("PropriedadeScraping<string>ExtraId")
-                                        .HasConstraintName("fk_extras_extras_propriedade_scraping_string_extra_id");
+                                        .HasForeignKey("PropriedadeScraping<double>ExtraId")
+                                        .HasConstraintName("fk_extras_extras_propriedade_scraping_double_extra_id");
                                 });
 
                             b1.Navigation("Fontes");

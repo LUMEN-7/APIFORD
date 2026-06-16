@@ -261,6 +261,54 @@ namespace APIFORD.Migrations
                     b.ToTable("pneus", (string)null);
                 });
 
+            modelBuilder.Entity("APIFORD.Model.Job", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("error");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("payload");
+
+                    b.Property<string>("Result")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("result");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("pending")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_jobs");
+
+                    b.ToTable("jobs", (string)null);
+                });
+
             modelBuilder.Entity("APIFORD.Model.ModeloSalvo", b =>
                 {
                     b.Property<string>("UserId")

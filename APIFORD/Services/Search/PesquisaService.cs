@@ -346,4 +346,8 @@ public class PesquisaService
 }
 
 // DTOs internos para comunicação com o Python
-internal record PythonJobResponse(Guid JobId);
+internal record PythonJobResponse
+{
+    [System.Text.Json.Serialization.JsonPropertyName("job_id")]
+    public Guid JobId { get; init; }
+}
