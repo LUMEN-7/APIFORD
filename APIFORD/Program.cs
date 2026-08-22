@@ -26,8 +26,18 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 // ==========================================
 // 2. BANCO DE DADOS E IDENTITY
 // ==========================================
+//builder.Services.AddDbContext<FordDbContext>(opts =>
+//    opts.UseSqlServer(connectionString));
 builder.Services.AddDbContext<FordDbContext>(opts =>
-    opts.UseSqlServer(connectionString));
+    opts.UseNpgsql(connectionString,
+        npgsqlOptionsAction: sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5, // Tenta reconectar até 5 vezes antes de desistir
+                maxRetryDelay: TimeSpan.FromSeconds(30), // Espera até 30 segundos entre as tentativas
+                errorCodesToAdd: null); // Usa a lista padrão de erros transitórios do SQL Server
+        })
+    );
 
 builder.Services
     .AddIdentity<User, IdentityRole>()
@@ -109,7 +119,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<FordDbContext>(options =>
-    options.UseSqlServer(connectionString)
+    options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention());
 
 // ==========================================
@@ -117,11 +127,11 @@ builder.Services.AddDbContext<FordDbContext>(options =>
 // ==========================================
 WebApplication app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

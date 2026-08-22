@@ -1,16 +1,17 @@
 ﻿
-using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
+using APIFORD.Data.DTOS;
+using APIFORD.Data.DTOS.CarrosDto;
 
 public record CreateCarroDTO(
     string Modelo,
     string Marca,
     int Ano,
-    List<CreateEspecificacaoDTO>? Especificacoes = null,
-    List<CreateConsumoDTO>? Consumos = null,
-    List<CreateDimensaoDTO>? Dimensoes = null,
-    List<CreatePneuDTO>? Pneus = null,
-    List<CreateExtraDTO>? Extras = null,
-    List<string>? ModosCarro = null
-
+    List<EspecificacaoDTO>? Especificacoes = null,
+    List<ConsumoDTO>? Consumos = null,
+    List<DimensaoDTO>? Dimensoes = null,
+    List<PneuDTO>? Pneus = null,
+    List<ExtraDTO>? Extras = null,
+    PropriedadeScrapingDTO<List<string>>? Modos = null,
+    PropriedadeScrapingDTO<string>? Categoria = null
 
 );

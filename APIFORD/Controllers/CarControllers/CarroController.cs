@@ -2,6 +2,7 @@
 
 using APIFORD.Services.CarroServices;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace APIFORD.Controllers.CarroControllers;
 
@@ -14,6 +15,42 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
 
     public CarroController(CarroService CarroService): base(CarroService)
     {
+        _CarroService = CarroService;
     }
+
+    /// <summary>
+    /// Edita propriedades específicas do JSONB do carro dinamicamente.
+    /// </summary>
+    /// <param name="id">ID do Carro</param>
+    /// <param name="alteracoes">Dicionário de alterações (Ex: {"Categoria": "SUV"})</param>
+    [HttpPatch("edicao-admin/{id}")]
+    // [Authorize(Roles = "Admin")] // Descomente quando integrar a autenticação
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EditarPropriedades(int id, [FromBody] Dictionary<string, object> alteracoes)
+    {
+        try
+        {
+            // Em produção, extrairíamos o ID do admin direto do Token JWT (User.Claims)
+            int simulacaoAdminId = 999;
+
+            if (alteracoes == null || alteracoes.Count == 0)
+                return BadRequest(new { message = "Nenhuma alteração enviada no payload." });
+
+            var carroAtualizado = await _CarroService.EditarPropriedadesAdminAsync(id, alteracoes, simulacaoAdminId);
+
+            return Ok(carroAtualizado);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Erro ao processar as alterações.", detalhe = ex.Message });
+        }
+    }
+
 
 }

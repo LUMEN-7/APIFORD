@@ -22,10 +22,6 @@ public class BaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> : IBas
         DbSet = Context.Set<TEntity>();
     }
 
-    protected virtual IQueryable<TEntity> AddIncludes(IQueryable<TEntity> query)
-    {
-        return query;
-    }
 
     protected virtual Task PostMappingAsync(TReadDTO dto, TEntity entity)
     {
@@ -51,7 +47,6 @@ public class BaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> : IBas
     public virtual async Task<IEnumerable<TReadDTO>> GetAllAsync()
     {
         var query = DbSet.AsQueryable();
-        query = AddIncludes(query);
 
         var property = typeof(TEntity).GetProperty("Excluido");
         if (property != null)
@@ -69,7 +64,6 @@ public class BaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> : IBas
     public virtual async Task<TReadDTO> GetByIdAsync(TKey id)
     {
         var query = DbSet.AsQueryable();
-        query = AddIncludes(query);
 
         var entity = await query.FirstOrDefaultAsync(e => EF.Property<TKey>(e, "Id").Equals(id));
         if (entity == null) return default!;

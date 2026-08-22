@@ -3,122 +3,143 @@ using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Model.CarroClasses;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using APIFORD.Model.CarroClasses.Intermedians;
-using System.Runtime.ConstrainedExecution;
+using Newtonsoft.Json;
+using System.Reflection;
+using System.Text.Json;
+
 namespace APIFORD.Services.CarroServices;
 
 public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, UpdateCarroDTO, int>
 {
-    public CarroService(FordDbContext context, IMapper mapper) : base(context, mapper)
+    private readonly HelperService _helperService;
+
+    public CarroService(FordDbContext context, IMapper mapper, HelperService helperService)
+        : base(context, mapper)
     {
+        _helperService = helperService;
     }
 
-    // 1. Sobrescreve para apliCarro os Includes do Carro
-    protected override IQueryable<Carro> AddIncludes(IQueryable<Carro> query)
+
+    protected override async Task PostMappingListAsync(List<ReadCarroDTO> dtos, List<Carro> entities)
     {
-        return query
-            .Include(c => c.Especificacoes)
-            .Include(c => c.Consumos)
-            .Include(c => c.Dimensoes)
-            .Include(c => c.Pneus)
-            .Include(c => c.Extras)
-            .Include(c => c.ModosCarro).ThenInclude(cm => cm.Modo);
+        // Aqui nós chamamos a versão do método que aceita Listas!
+        // Ele vai varrer todos os carros, ir ao banco uma vez só, e distribuir as fontes.
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dtos, entities);
     }
 
-    // 2. Sobrescreve o CreateAsync para manter a sua lógica de mapeamento dos modos de direção
+
     public override async Task<ReadCarroDTO> CreateAsync(CreateCarroDTO dto)
     {
         var carro = Mapper.Map<Carro>(dto);
-
-        if (dto.ModosCarro != null && dto.ModosCarro.Any())
-        {
-            foreach (var modeName in dto.ModosCarro)
-            {
-                var modeEntity = await Context.Modos.FirstOrDefaultAsync(m => m.Tipo == modeName);
-                if (modeEntity != null)
-                {
-                    carro.ModosCarro.Add(new CarroModo { Carro = carro, Modo = modeEntity });
-                }
-            }
-        }
+        await _helperService.SincronizarEInjetarIdsDeFontesAsync(carro);
 
         await DbSet.AddAsync(carro);
         await Context.SaveChangesAsync();
 
         var readCarroDto = Mapper.Map<ReadCarroDTO>(carro);
-        await PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
 
         return readCarroDto;
     }
 
     public override async Task<ReadCarroDTO> GetByIdAsync(int id)
     {
-        var query = DbSet.AsQueryable();
-        query = AddIncludes(query);
-
-        var carro = await query.FirstOrDefaultAsync(c => c.Id == id);
-        if (carro == null)
-        {
-            throw new KeyNotFoundException("Veículo não encontrado para o ID informado.");
-        }
+        var carro = await DbSet.FirstOrDefaultAsync(c => c.Id == id); // Zero Includes!
+        if (carro == null) throw new KeyNotFoundException("Veículo não encontrado.");
 
         var readCarroDto = Mapper.Map<ReadCarroDTO>(carro);
-        await PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
 
         return readCarroDto;
     }
 
-    private async Task PreencherCatalogoDeFontesNoDtoAsync(ReadCarroDTO dto, Carro carro)
+
+    public async Task<ReadCarroDTO> EditarPropriedadesAdminAsync(int carroId, Dictionary<string, object> alteracoes, int adminId)
     {
-        var fontesIds = new HashSet<int>();
+        var carro = await DbSet.FirstOrDefaultAsync(c => c.Id == carroId);
+        if (carro == null) throw new KeyNotFoundException("Carro não encontrado.");
 
-        foreach (var spec in carro.Especificacoes)
+        foreach (var alteracao in alteracoes)
         {
-            fontesIds.UnionWith(spec.Potencia.Fontes.Select(p => p.FonteId));
-            fontesIds.UnionWith(spec.Torque.Fontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(spec.PotenciaRpm.Fontes.Select(pr => pr.FonteId));
-            fontesIds.UnionWith(spec.TorqueRpm.Fontes.Select(tr => tr.FonteId));
-            fontesIds.UnionWith(spec.Transmissao.Fontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(spec.Tracao.Fontes.Select(t => t.FonteId));
+            var property = typeof(Carro).GetProperty(alteracao.Key, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (property == null) continue;
+
+            // 1. Descobrimos se a propriedade é um Envelope (PropriedadeScraping) ou uma propriedade normal (string, int)
+            bool isEnvelope = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(PropriedadeScraping<>);
+
+            // 2. Descobrimos qual é o tipo final que precisamos (ex: 'string' para o Modelo, 'List<string>' para os Modos)
+            var targetType = isEnvelope ? property.PropertyType.GetGenericArguments()[0] : property.PropertyType;
+
+            object valorLimpo = null;
+
+            try
+            {
+                // ====================================================================
+                // O MOTOR DE CONVERSÃO UNIVERSAL (Lida com qualquer formato que o front mandar)
+                // ====================================================================
+
+                // Cenário A: O ASP.NET usou Newtonsoft.Json (JToken, JObject, JValue)
+                if (alteracao.Value is Newtonsoft.Json.Linq.JToken jToken)
+                {
+                    valorLimpo = jToken.ToObject(targetType);
+                }
+                // Cenário B: O ASP.NET usou System.Text.Json (JsonElement)
+                else if (alteracao.Value is System.Text.Json.JsonElement jsonElement)
+                {
+                    valorLimpo = jsonElement.Deserialize(targetType);
+                }
+                // Cenário C: Veio como tipo primitivo puro (ex: a própria string "Mustang Mach-E91")
+                else
+                {
+                    valorLimpo = Convert.ChangeType(alteracao.Value, targetType);
+                }
+            }
+            catch
+            {
+                // Se houver qualquer falha bizarra de conversão num campo, ele ignora e salva o resto!
+                continue;
+            }
+
+            // ====================================================================
+            // APLICAÇÃO DO VALOR
+            // ====================================================================
+            if (isEnvelope)
+            {
+                var tipoInterno = property.PropertyType.GetGenericArguments()[0];
+                dynamic envelope = property.GetValue(carro) ?? Activator.CreateInstance(property.PropertyType)!;
+
+                // Em vez de 'envelope.Valor' (que não existe), nós criamos uma FONTE DO ADMIN!
+                var novaFonteType = typeof(ItemFonteScraping<>).MakeGenericType(tipoInterno);
+                dynamic novaFonte = Activator.CreateInstance(novaFonteType)!;
+
+                novaFonte.Valor = valorLimpo;
+                novaFonte.Confianca = 1.0m; // Confiança máxima
+                novaFonte.Fonte = "Edição Manual";
+                novaFonte.FonteId = adminId;
+
+                // Adicionamos a fonte ao envelope
+                if (envelope.Fontes == null)
+                {
+                    var listaType = typeof(List<>).MakeGenericType(novaFonteType);
+                    envelope.Fontes = Activator.CreateInstance(listaType);
+                }
+                envelope.Fontes.Add((object)novaFonte);
+                envelope.Conflito = false; // Como o admin editou, resolvemos qualquer conflito
+
+                property.SetValue(carro, (object)envelope);
+            }
+            else
+            {
+                // Propriedades comuns (Modelo, Ano)
+                property.SetValue(carro, valorLimpo);
+            }
         }
 
-        foreach (var cons in carro.Consumos)
-        {
-            fontesIds.UnionWith(cons.Cidade.Fontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(cons.Estrada.Fontes.Select(e => e.FonteId));
-        }
+        // Salva e atualiza!
+        await Context.SaveChangesAsync();
+        var readDto = Mapper.Map<ReadCarroDTO>(carro);
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carro);
 
-        foreach (var dim in carro.Dimensoes)
-        {
-            fontesIds.UnionWith(dim.Comprimento.Fontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(dim.Largura.Fontes.Select(l => l.FonteId));
-            fontesIds.UnionWith(dim.Altura.Fontes.Select(a => a.FonteId));
-            fontesIds.UnionWith(dim.EntreEixos.Fontes.Select(e => e.FonteId));
-        }
-
-        foreach (var pneu in carro.Pneus)
-        {
-            fontesIds.UnionWith(pneu.Tipo.Fontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(pneu.Aro.Fontes.Select(a => a.FonteId));
-            fontesIds.UnionWith(pneu.Largura.Fontes.Select(l => l.FonteId));
-            fontesIds.UnionWith(pneu.Perfil.Fontes.Select(p => p.FonteId));
-        }
-
-        foreach (var extra in carro.Extras)
-        {
-            fontesIds.UnionWith(extra.CapacidadeTanque.Fontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(extra.TipoCombustivel.Fontes.Select(t => t.FonteId));
-            fontesIds.UnionWith(extra.CapacidadeCarga.Fontes.Select(c => c.FonteId));
-            fontesIds.UnionWith(extra.CapacidadeReboque.Fontes.Select(c => c.FonteId));
-        }
-
-        if (fontesIds.Count > 0)
-        {
-            var listaFontesEntidade = await Context.Fontes
-                .Where(f => fontesIds.Contains(f.Id) && !f.Excluido)
-                .ToListAsync();
-
-            dto.Fontes = Mapper.Map<List<ReadFonteDTO>>(listaFontesEntidade);
-        }
+        return readDto;
     }
 }

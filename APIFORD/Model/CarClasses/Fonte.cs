@@ -1,5 +1,4 @@
-﻿using APIFORD.Model.CarroClasses.Intermedians;
-
+﻿
 namespace APIFORD.Model.CarroClasses;
 
 public class Fonte

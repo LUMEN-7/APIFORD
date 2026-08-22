@@ -1,4 +1,6 @@
-﻿namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
+﻿using APIFORD.Data.DTOS.CarrosDto;
+
+namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 
 public class ReadCarroDTO
 {
@@ -8,12 +10,13 @@ public class ReadCarroDTO
     public int Ano { get; set; }
     public bool Excluido { get; set; }
 
-    public List<ReadEspecificacaoDTO> Especificacoes { get; set; } = new();
-    public List<ReadConsumoDTO> Consumos { get; set; } = new();
-    public List<ReadPneuDTO> Pneus { get; set; } = new();
-    public List<ReadDimensaoDTO> Dimensoes { get; set; } = new();
-    public List<ReadExtraDTO> Extras { get; set; } = new();
-    public List<string> ModosCarro { get; set; } = new();
+    public List<EspecificacaoDTO> Especificacoes { get; set; } = new();
+    public List<ConsumoDTO> Consumos { get; set; } = new();
+    public List<PneuDTO> Pneus { get; set; } = new();
+    public List<DimensaoDTO> Dimensoes { get; set; } = new();
+    public List<ExtraDTO> Extras { get; set; } = new();
+    public PropriedadeScrapingDTO<List<string>> Modos { get; set; } = new();
+    public PropriedadeScrapingDTO<string> Categoria { get; set; } = new();
 
     public List<ReadFonteDTO> Fontes { get; set; } = new();
 }
