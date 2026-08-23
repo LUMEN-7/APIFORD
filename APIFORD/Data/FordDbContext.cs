@@ -68,6 +68,14 @@ public class FordDbContext : IdentityDbContext<User>
         // ==========================================
         builder.Entity<Carro>(entity =>
         {
+            entity.HasIndex(c => c.Especificacoes).HasMethod("gin");
+            entity.HasIndex(c => c.Consumos).HasMethod("gin");
+            entity.HasIndex(c => c.Dimensoes).HasMethod("gin");
+            entity.HasIndex(c => c.Extras).HasMethod("gin");
+
+            // Se você for usar 'Categoria' e 'Modos' frequentemente em filtros:
+            entity.HasIndex(c => c.Categoria).HasMethod("gin");
+            entity.HasIndex(c => c.Modos).HasMethod("gin");
             // === NOSSOS NOVOS ENVELOPES ===
 
             // Categoria (string)

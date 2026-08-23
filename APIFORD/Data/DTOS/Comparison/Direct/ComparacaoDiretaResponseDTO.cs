@@ -4,6 +4,8 @@ namespace APIFORD.Data.DTOS.Comparison.Direct;
 
 public class ComparacaoDiretaResponseDTO
 {
-    public List<ReadCarroDTO> CarrosComparados { get; set; }
-    public string ParecerIA { get; set; } // Análise do Python sobre quem ganha em qual quesito
+    public List<ReadCarroDTO> CarrosComparados { get; set; } = new();
+
+    public Dictionary<string, string> ConclusoesMatematicas { get; set; } = new();
+    public string ParecerIA { get; set; } = string.Empty; // Análise do Python sobre quem ganha em qual quesito
 }

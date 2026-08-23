@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -122,14 +123,24 @@ builder.Services.AddDbContext<FordDbContext>(options =>
     options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention());
 
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true; // por padrão vem desabilitado em HTTPS, precisa ligar
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
+
+
 // ==========================================
 // PIPELINE DE REQUISIÇÃO (MIDDLEWARES)
 // ==========================================
 WebApplication app = builder.Build();
+app.UseResponseCompression();
 
-//if (app.Environment.IsDevelopment())
-//{
-//}
 app.UseSwagger();
 app.UseSwaggerUI();
 
