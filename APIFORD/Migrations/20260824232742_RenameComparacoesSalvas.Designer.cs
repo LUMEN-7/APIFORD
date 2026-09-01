@@ -3,6 +3,7 @@ using System;
 using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class FordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260824232742_RenameComparacoesSalvas")]
+    partial class RenameComparacoesSalvas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -248,16 +251,8 @@ namespace APIFORD.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("type");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
                     b.HasKey("Id")
                         .HasName("pk_notifications");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_notifications_user_id");
 
                     b.ToTable("notifications", (string)null);
                 });
@@ -1903,18 +1898,6 @@ namespace APIFORD.Migrations
                         .HasConstraintName("fk_modelo_salvos_users_user_id");
 
                     b.Navigation("Carro");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Notificacao", b =>
-                {
-                    b.HasOne("APIFORD.Model.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_notifications_users_user_id");
 
                     b.Navigation("User");
                 });

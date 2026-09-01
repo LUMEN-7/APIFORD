@@ -12,11 +12,12 @@ public class CreateNotificationDTO
 
     [Required(ErrorMessage = "O título é obrigatório.")]
     public string Titulo { get; set; }
+    public string? userId { get; set; }
 
     public string? Subtitulo { get; set; }
 
     [Required(ErrorMessage = "O conteúdo é obrigatório.")]
-    public dynamic Mensagem { get; set; }
+    public string Mensagem { get; set; }
 
     public bool Lido { get; set; } = false;
 

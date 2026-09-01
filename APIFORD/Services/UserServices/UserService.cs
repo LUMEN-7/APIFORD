@@ -81,14 +81,6 @@ public class UserService
         if (!resultado.Succeeded) throw new ApplicationException($"Falha ao atualizar usuário, \nError: {erros}");
     }
 
-    public async Task SaveModel(CreateModeloSalvoDTO dto)
-    {
-        var savedModel = _mapper.Map<ModeloSalvo>(dto);
-        _context.ModeloSalvos.Add(savedModel);
-        await _context.SaveChangesAsync();
-    }
-
-
     public async Task Logout()
     {
         await _signInManager.SignOutAsync();

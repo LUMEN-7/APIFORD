@@ -19,6 +19,7 @@ public class FordDbContext : IdentityDbContext<User>
     public DbSet<Fonte> Fontes { get; set; }
     public DbSet<ModeloSalvo> ModeloSalvos { get; set; }
     public DbSet<Job> Jobs { get; set; }
+    public DbSet<ComparacaoSalva> ComparacoesSalvas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -52,6 +53,7 @@ public class FordDbContext : IdentityDbContext<User>
         builder.Entity<Notificacao>(entity =>
         {
             entity.Property(e => e.DataCriacao).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasOne(n => n.User).WithMany().HasForeignKey(n => n.UserId);
         });
 
         builder.Entity<ModeloSalvo>(entity =>
@@ -63,19 +65,42 @@ public class FordDbContext : IdentityDbContext<User>
 
         builder.Entity<Fonte>(entity => { });
 
+
+        builder.Entity<ComparacaoSalva>(entity =>
+        {
+            
+            entity.HasKey(c => c.Id);
+            // 3. Mapeamento do Usuário (Com Índice para buscas rápidas)
+            entity.Property(c => c.UserId)
+                .IsRequired()
+                .HasMaxLength(450); // Tamanho padrão seguro caso use o ASP.NET Core Identity no futuro
+
+            entity.HasIndex(c => c.UserId); // Essencial para a listagem do histórico não ficar lenta!
+
+            // 4. Mapeamento dos Dados Básicos
+            entity.Property(c => c.Titulo)
+                .IsRequired()
+                .HasMaxLength(150);
+
+            entity.Property(c => c.Tipo)
+                .IsRequired()
+                .HasMaxLength(50); // Vai guardar apenas "Direta" ou "Grupo"
+
+            entity.Property(c => c.DataSalvamento)
+                .IsRequired();
+
+            // 5. A MÁGICA: Avisando ao PostgreSQL que essa string é um JSONB
+            entity.Property(c => c.RequestPayload)
+                .IsRequired()
+                .HasColumnType("jsonb");
+        });
+
         // ==========================================
         // 🔄 MÁGICA DO POSTGRES: MAPEAMENTO JSONB
         // ==========================================
         builder.Entity<Carro>(entity =>
         {
-            entity.HasIndex(c => c.Especificacoes).HasMethod("gin");
-            entity.HasIndex(c => c.Consumos).HasMethod("gin");
-            entity.HasIndex(c => c.Dimensoes).HasMethod("gin");
-            entity.HasIndex(c => c.Extras).HasMethod("gin");
 
-            // Se você for usar 'Categoria' e 'Modos' frequentemente em filtros:
-            entity.HasIndex(c => c.Categoria).HasMethod("gin");
-            entity.HasIndex(c => c.Modos).HasMethod("gin");
             // === NOSSOS NOVOS ENVELOPES ===
 
             // Categoria (string)
@@ -136,6 +161,7 @@ public class FordDbContext : IdentityDbContext<User>
                 extras.OwnsOne(e => e.CapacidadeCarga, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.CapacidadeReboque, b => b.OwnsMany(x => x.Fontes));
             });
+
         });
     }
 }

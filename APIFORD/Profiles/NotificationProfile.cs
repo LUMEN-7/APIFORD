@@ -12,16 +12,14 @@ public class NotificationPerfil : Profile
     public NotificationPerfil()
     {
         CreateMap<CreateNotificationDTO, Notificacao>()
-            // Ignora o mapeamento automático para que sua atribuição manual .ToString() funcione
-            .ForMember(dest => dest.Mensagem, opt => opt.Ignore())
             // Ignora a data para que o SQL Server use o GETUTCDATE() padrão
             .ForMember(dest => dest.DataCriacao, opt => opt.Ignore());
 
-        CreateMap<Notificacao, ReadNotificationDTO>()
-            .ForMember(dest => dest.Mensagem, opt => opt.MapFrom(src =>
-                string.IsNullOrEmpty(src.Mensagem)
-                    ? null
-                    : ConvertJson(JsonSerializer.Deserialize<JsonElement>(src.Mensagem))));
+        CreateMap<Notificacao, ReadNotificationDTO>();
+            //.ForMember(dest => dest.Mensagem, opt => opt.MapFrom(src =>
+            //    string.IsNullOrEmpty(src.Mensagem)
+            //        ? null
+            //        : ConvertJson(JsonSerializer.Deserialize<JsonElement>(src.Mensagem))));
     }
 
 // Função auxiliar para converter JsonElement em tipos pAroitivos do C#

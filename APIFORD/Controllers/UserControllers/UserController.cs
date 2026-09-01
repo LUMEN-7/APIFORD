@@ -95,33 +95,7 @@ public class UserController : ControllerBase
         string token = await _userService.Login(dto);
         return Ok(token);
     }
-    /// <summary>
-    /// Salva um modelo de Carro nos favoritos do usuário.
-    /// </summary>
-    /// <remarks>
-    /// Exemplo de requisição:
-    /// 
-    ///     POST /UserController/salvar-modelo
-    ///     {
-    ///        "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    ///        "Carro_id": 1
-    ///     }
-    /// 
-    /// </remarks>
-    /// <param name="dto">Dados do usuário e do Carro a ser favoritado.</param>
-    /// <returns>Uma mensagem confirmando o sucesso da operação.</returns>
-    /// <response code="200">Modelo salvo nos favoritos com sucesso.</response>
-    /// <response code="400">Dados inválidos enviados no corpo da requisição.</response>
-    /// <response code="401">Usuário não autenticado.</response>
-    [HttpPost("salvar-modelo")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> SaveModel([FromBody] CreateModeloSalvoDTO dto)
-    {
-        await _userService.SaveModel(dto);
-        return Ok("Modelo salvo com sucesso");
-    }
+
 
     /// <summary>
     /// Realiza o logout do usuário atual no sistema, encerrando a sessão.

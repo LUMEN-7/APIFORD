@@ -1,18 +1,19 @@
 ﻿// APIFORD/Services/Search/PesquisaService.cs
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using APIFORD.Data;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Search;
 using APIFORD.Model;
 using APIFORD.Model.CarroClasses;
+using APIFORD.Services.NotificationService;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace APIFORD.Services.Search;
 
@@ -22,6 +23,7 @@ public class PesquisaService
     private readonly FordDbContext _context;
     private readonly IMapper _mapper;
     private readonly HelperService _helperService;
+    private readonly NotificacaoService _notificacaoService;
 
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -29,12 +31,13 @@ public class PesquisaService
         PropertyNameCaseInsensitive = true
     };
 
-    public PesquisaService(HelperService helperService, HttpClient httpClient, FordDbContext context, IMapper mapper)
+    public PesquisaService(HelperService helperService, HttpClient httpClient, FordDbContext context, IMapper mapper, NotificacaoService notificacaoService)
     {
         _helperService = helperService;
         _httpClient = httpClient;
         _context = context;
         _mapper = mapper;
+        _notificacaoService = notificacaoService;
     }
 
     // -------------------------------------------------------------------------
@@ -116,7 +119,7 @@ public class PesquisaService
 
         var readCarroDto = _mapper.Map<ReadCarroDTO>(carroCompleto);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carroCompleto);
-
+        await _notificacaoService.NotificarAtualizacaoCarroAsync(carroCompleto.Id, carroCompleto.Marca, carroCompleto.Modelo);
         return readCarroDto;
     }
 }

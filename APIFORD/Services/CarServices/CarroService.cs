@@ -1,6 +1,7 @@
 ﻿using APIFORD.Data;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Model.CarroClasses;
+using APIFORD.Services.NotificationService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -12,11 +13,13 @@ namespace APIFORD.Services.CarroServices;
 public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, UpdateCarroDTO, int>
 {
     private readonly HelperService _helperService;
+    private readonly NotificacaoService _notificacaoService;
 
-    public CarroService(FordDbContext context, IMapper mapper, HelperService helperService)
+    public CarroService(FordDbContext context, IMapper mapper, HelperService helperService, NotificacaoService notificacaoService)
         : base(context, mapper)
     {
         _helperService = helperService;
+        _notificacaoService = notificacaoService;
     }
 
 
@@ -38,6 +41,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
 
         var readCarroDto = Mapper.Map<ReadCarroDTO>(carro);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
+        await _notificacaoService.NotificarAtualizacaoCarroAsync(carro.Id, carro.Marca, carro.Modelo);
 
         return readCarroDto;
     }
@@ -139,7 +143,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         await Context.SaveChangesAsync();
         var readDto = Mapper.Map<ReadCarroDTO>(carro);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carro);
-
+        await _notificacaoService.NotificarAtualizacaoCarroAsync(carro.Id, carro.Marca, carro.Modelo);
         return readDto;
     }
 }

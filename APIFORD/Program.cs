@@ -1,4 +1,5 @@
 using APIFORD.Data;
+using APIFORD.Hubs;
 using APIFORD.Model;
 using APIFORD.Perfils;
 using APIFORD.Services;
@@ -9,10 +10,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json.Serialization;
+
+
+
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -61,6 +66,22 @@ builder.Services
 //        ValidateIssuer = false,
 //        ClockSkew = TimeSpan.Zero,
 //    };
+
+// O handshake WebSocket do SignalR não manda header Authorization,
+// então o front precisa mandar o token assim: /hubs/notificacao?access_token=SEU_TOKEN
+    //options.Events = new JwtBearerEvents
+    //{
+    //    OnMessageReceived = context =>
+    //    {
+    //        var accessToken = context.Request.Query["access_token"];
+    //        if (!string.IsNullOrEmpty(accessToken) &&
+    //            context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+    //        {
+    //            context.Token = accessToken;
+    //        }
+    //        return Task.CompletedTask;
+    //    }
+    //};
 //});
 
 // Politicas de autorização customizadas, caso queira usar. Exemplo de política de idade minima, onde o requisito é ter mais de 18 anos para acessar determinado recurso.
@@ -133,12 +154,13 @@ builder.Services.AddResponseCompression(options =>
 
 builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
 builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
-
+builder.Services.AddSignalR();
 
 // ==========================================
 // PIPELINE DE REQUISIÇÃO (MIDDLEWARES)
 // ==========================================
 WebApplication app = builder.Build();
+app.MapHub<NotificacaoHub>("/hubs/notificacao");
 app.UseResponseCompression();
 
 app.UseSwagger();
