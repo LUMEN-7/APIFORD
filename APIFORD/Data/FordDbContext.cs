@@ -33,8 +33,10 @@ public class FordDbContext : IdentityDbContext<User>
             b.ToTable("jobs");
             b.HasKey(x => x.Id).HasName("pk_jobs");
 
-            // Assumindo que Job.Id virou int, removemos o gerador UUID
-            b.Property(x => x.Id).HasColumnName("id");
+            // Job.Id é Guid (não int) — o Postgres precisa gerar o UUID.
+            b.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasDefaultValueSql("gen_random_uuid()");
 
             b.Property(x => x.Status).HasColumnName("status").HasDefaultValue("pending");
 
@@ -68,7 +70,7 @@ public class FordDbContext : IdentityDbContext<User>
 
         builder.Entity<ComparacaoSalva>(entity =>
         {
-            
+
             entity.HasKey(c => c.Id);
             // 3. Mapeamento do Usuário (Com Índice para buscas rápidas)
             entity.Property(c => c.UserId)
