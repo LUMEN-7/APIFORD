@@ -4,6 +4,7 @@ using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Search;
 using APIFORD.Model;
 using APIFORD.Model.CarroClasses;
+using APIFORD.Services.CarroServices;
 using APIFORD.Services.NotificationService;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -103,8 +104,16 @@ public class PesquisaService
 
         var carroEntity = _mapper.Map<Carro>(createCarroDto);
 
-        // Toda a iteração de Context.Modos foi removida. O C# confia no JSON!
+        var carroExistente = await _context.Carros.FirstOrDefaultAsync(c =>
+        c.Marca == carroEntity.Marca && c.Modelo == carroEntity.Modelo && c.Ano == carroEntity.Ano);
 
+        //if (carroExistente != null)
+        //{
+        //    var (readDtoExistente, _) = await _carroService.AtualizarCarroComNovosDadosAsync(carroExistente.Id, carroEntity);
+        //    return readDtoExistente;
+        //}
+
+        // Toda a iteração de Context.Modos foi removida. O C# confia no JSON!
         await _helperService.SincronizarEInjetarIdsDeFontesAsync(carroEntity);
 
         await _context.Carros.AddAsync(carroEntity);

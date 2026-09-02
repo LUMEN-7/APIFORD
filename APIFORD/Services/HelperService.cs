@@ -3,6 +3,7 @@ using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Model.CarroClasses;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace APIFORD.Services;
@@ -340,5 +341,83 @@ public class HelperService
         }
 
         return fontesIds;
+    }
+
+    public bool MesclarDadosDeScraping(Carro carroExistente, Carro carroNovo)
+    {
+        bool houveMudanca = MesclarEnvelopesDoObjeto(carroExistente, carroNovo);
+
+        houveMudanca |= MesclarColecao(carroExistente.Especificacoes, carroNovo.Especificacoes);
+        houveMudanca |= MesclarColecao(carroExistente.Consumos, carroNovo.Consumos);
+        houveMudanca |= MesclarColecao(carroExistente.Dimensoes, carroNovo.Dimensoes);
+        houveMudanca |= MesclarColecao(carroExistente.Pneus, carroNovo.Pneus);
+        houveMudanca |= MesclarColecao(carroExistente.Extras, carroNovo.Extras);
+
+        return houveMudanca;
+    }
+
+    // Acha, dentro de um objeto (Carro, Especificacao, Consumo...), as propriedades PropriedadeScraping<T>
+    // e mescla a lista de Fontes de cada uma.
+    private bool MesclarEnvelopesDoObjeto(object destino, object origem)
+    {
+        bool mudou = false;
+        var props = destino.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var prop in props)
+        {
+            bool isEnvelope = prop.PropertyType.IsGenericType &&
+                               prop.PropertyType.GetGenericTypeDefinition() == typeof(PropriedadeScraping<>);
+            if (!isEnvelope) continue;
+
+            dynamic envelopeDestino = prop.GetValue(destino) ?? Activator.CreateInstance(prop.PropertyType)!;
+            dynamic envelopeOrigem = prop.GetValue(origem);
+            if (envelopeOrigem?.Fontes == null) continue;
+
+            foreach (var fonteNova in envelopeOrigem.Fontes)
+            {
+                if (MesclarFonteNaLista(envelopeDestino.Fontes, fonteNova))
+                    mudou = true;
+            }
+
+            prop.SetValue(destino, (object)envelopeDestino);
+        }
+
+        return mudou;
+    }
+
+    // Substitui a fonte se ela já existir (mesmo nome, ex: "icarros.com.br"), ou adiciona se for fonte nova.
+    private bool MesclarFonteNaLista<T>(List<ItemFonteScraping<T>> fontesExistentes, ItemFonteScraping<T> fonteNova)
+    {
+        var existente = fontesExistentes.FirstOrDefault(f => f.Fonte == fonteNova.Fonte);
+
+        if (existente == null)
+        {
+            fontesExistentes.Add(fonteNova);
+            return true;
+        }
+
+        bool valorMudou = !Equals(existente.Valor, fonteNova.Valor);
+        existente.Valor = fonteNova.Valor;
+        existente.Confianca = fonteNova.Confianca;
+        existente.DataColeta = fonteNova.DataColeta;
+        existente.DataReferencia = fonteNova.DataReferencia;
+
+        return valorMudou;
+    }
+
+    // Mescla coleções tipo Especificacoes/Consumos/etc.
+    private bool MesclarColecao<TItem>(ICollection<TItem> existentes, ICollection<TItem> novos) where TItem : class, new()
+    {
+        var novo = novos.FirstOrDefault();
+        if (novo == null) return false;
+
+        var atual = existentes.FirstOrDefault();
+        if (atual == null)
+        {
+            existentes.Add(novo);
+            return true;
+        }
+
+        return MesclarEnvelopesDoObjeto(atual, novo);
     }
 }

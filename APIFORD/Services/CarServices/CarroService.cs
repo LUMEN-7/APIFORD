@@ -146,4 +146,31 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         await _notificacaoService.NotificarAtualizacaoCarroAsync(carro.Id, carro.Marca, carro.Modelo);
         return readDto;
     }
+
+    public async Task<(ReadCarroDTO Carro, bool HouveMudanca)> AtualizarCarroComNovosDadosAsync(int carroExistenteId, Carro carroNovo)
+    {
+        var carroExistente = await DbSet
+            .Include(c => c.Especificacoes)
+            .Include(c => c.Consumos)
+            .Include(c => c.Dimensoes)
+            .Include(c => c.Pneus)
+            .Include(c => c.Extras)
+            .FirstOrDefaultAsync(c => c.Id == carroExistenteId);
+
+        if (carroExistente == null)
+            throw new KeyNotFoundException("Carro não encontrado.");
+
+        bool houveMudanca = _helperService.MesclarDadosDeScraping(carroExistente, carroNovo);
+
+        if (houveMudanca)
+        {
+            await Context.SaveChangesAsync();
+            await _notificacaoService.NotificarAtualizacaoCarroAsync(carroExistente.Id, carroExistente.Marca, carroExistente.Modelo);
+        }
+
+        var readDto = Mapper.Map<ReadCarroDTO>(carroExistente);
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carroExistente);
+
+        return (readDto, houveMudanca);
+    }
 }
