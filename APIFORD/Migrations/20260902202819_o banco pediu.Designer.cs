@@ -3,6 +3,7 @@ using System;
 using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class FordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902202819_o banco pediu")]
+    partial class obancopediu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,7 +223,7 @@ namespace APIFORD.Migrations
                     b.ToTable("modelo_salvos", (string)null);
                 });
 
-            modelBuilder.Entity("APIFORD.Model.Notification.NotificacaoEvento", b =>
+            modelBuilder.Entity("APIFORD.Model.Notificacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -230,57 +233,36 @@ namespace APIFORD.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("DataCriacao")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("data_criacao");
+                        .HasColumnName("data_criacao")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<bool>("Excluido")
                         .HasColumnType("boolean")
                         .HasColumnName("excluido");
+
+                    b.Property<bool>("Lida")
+                        .HasColumnType("boolean")
+                        .HasColumnName("lida");
 
                     b.Property<string>("Mensagem")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("mensagem");
 
-                    b.Property<string>("Subtitulo")
+                    b.Property<string>("Subtitle")
                         .HasColumnType("text")
-                        .HasColumnName("subtitulo");
-
-                    b.Property<int>("Tipo")
-                        .HasColumnType("integer")
-                        .HasColumnName("tipo");
+                        .HasColumnName("subtitle");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("titulo");
 
-                    b.HasKey("Id")
-                        .HasName("pk_notificacoes_eventos");
-
-                    b.ToTable("notificacoes_eventos", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Notification.NotificacaoUsuario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("Type")
                         .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("DataLeitura")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("data_leitura");
-
-                    b.Property<bool>("Lida")
-                        .HasColumnType("boolean")
-                        .HasColumnName("lida");
-
-                    b.Property<int>("NotificacaoEventoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("notificacao_evento_id");
+                        .HasColumnName("type");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -288,15 +270,12 @@ namespace APIFORD.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_notificacoes_usuarios");
+                        .HasName("pk_notifications");
 
-                    b.HasIndex("NotificacaoEventoId")
-                        .HasDatabaseName("ix_notificacoes_usuarios_notificacao_evento_id");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_notifications_user_id");
 
-                    b.HasIndex("UserId", "Lida")
-                        .HasDatabaseName("ix_notificacoes_usuarios_user_lida");
-
-                    b.ToTable("notificacoes_usuarios", (string)null);
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("APIFORD.Model.User", b =>
@@ -1944,16 +1923,16 @@ namespace APIFORD.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("APIFORD.Model.Notification.NotificacaoUsuario", b =>
+            modelBuilder.Entity("APIFORD.Model.Notificacao", b =>
                 {
-                    b.HasOne("APIFORD.Model.Notification.NotificacaoEvento", "Evento")
-                        .WithMany("Destinatarios")
-                        .HasForeignKey("NotificacaoEventoId")
+                    b.HasOne("APIFORD.Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_notificacoes_usuarios_notificacoes_eventos_notificacao_even");
+                        .HasConstraintName("fk_notifications_users_user_id");
 
-                    b.Navigation("Evento");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2016,11 +1995,6 @@ namespace APIFORD.Migrations
             modelBuilder.Entity("APIFORD.Model.CarroClasses.Carro", b =>
                 {
                     b.Navigation("SalvoUsuario");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Notification.NotificacaoEvento", b =>
-                {
-                    b.Navigation("Destinatarios");
                 });
 
             modelBuilder.Entity("APIFORD.Model.User", b =>

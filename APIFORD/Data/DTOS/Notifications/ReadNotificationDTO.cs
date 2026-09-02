@@ -6,7 +6,7 @@ namespace APIFORD.Data.DTOS.Notifications;
 
 public class ReadNotificationDTO
 {
-    public string UserId { get; set; }
+    public string Id { get; set; }
     public NotificationTypes Tipo { get; set; }
     public string Titulo { get; set; }
     public string? Subtitulo { get; set; }

@@ -2,8 +2,10 @@
 
 using APIFORD.Model;
 using APIFORD.Model.CarroClasses;
+using APIFORD.Model.Notification;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 public class FordDbContext : IdentityDbContext<User>
 {
@@ -14,16 +16,37 @@ public class FordDbContext : IdentityDbContext<User>
     // ==========================================
     // APENAS AS TABELAS FÍSICAS REAIS
     // ==========================================
-    public DbSet<Notificacao> Notifications { get; set; }
     public DbSet<Carro> Carros { get; set; }
     public DbSet<Fonte> Fontes { get; set; }
     public DbSet<ModeloSalvo> ModeloSalvos { get; set; }
     public DbSet<Job> Jobs { get; set; }
     public DbSet<ComparacaoSalva> ComparacoesSalvas { get; set; }
+    public DbSet<NotificacaoEvento> NotificacoesEventos { get; set; }
+    public DbSet<NotificacaoUsuario> NotificacoesUsuarios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // ==========================================
+        // TABELA NOTIFICACOES
+        // ==========================================
+        builder.Entity<NotificacaoEvento>(entity =>
+        {});
+
+        builder.Entity<NotificacaoUsuario>(entity =>
+        {
+            entity.HasOne(e => e.Evento)
+                .WithMany(ev => ev.Destinatarios)
+                .HasForeignKey(e => e.NotificacaoEventoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // query mais frequente do sistema: notificações não lidas de 1 usuário
+            entity.HasIndex(e => new { e.UserId, e.Lida })
+                .HasDatabaseName("ix_notificacoes_usuarios_user_lida");
+        });
+
+
 
         // ==========================================
         // TABELA WORKER: JOBS
@@ -51,12 +74,7 @@ public class FordDbContext : IdentityDbContext<User>
 
         // ==========================================
         // TABELAS AUXILIARES E RELACIONAMENTOS
-        // ==========================================
-        builder.Entity<Notificacao>(entity =>
-        {
-            entity.Property(e => e.DataCriacao).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.HasOne(n => n.User).WithMany().HasForeignKey(n => n.UserId);
-        });
+        // =========================================
 
         builder.Entity<ModeloSalvo>(entity =>
         {
@@ -116,6 +134,7 @@ public class FordDbContext : IdentityDbContext<User>
                 mod.ToJson();
                 mod.OwnsMany(x => x.Fontes);
             });
+            
 
             // === O RESTANTE DA ESTRUTURA ===
 

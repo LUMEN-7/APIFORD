@@ -7,6 +7,9 @@ public class Carro
     public string Marca { get; set; }
     public int Ano { get; set; }
     public bool Excluido { get; set; } = false;
+    public int LinhagemId { get; set; }
+    public int? VersaoAnteriorId { get; set; }
+    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
     public  ICollection<ModeloSalvo> SalvoUsuario { get; set; } = new List<ModeloSalvo>();
     public  ICollection<Especificacao> Especificacoes { get; set; } = new List<Especificacao>();

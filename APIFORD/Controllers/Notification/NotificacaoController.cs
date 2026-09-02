@@ -8,12 +8,12 @@ namespace APIFORD.Controllers.Notification;
 
 [ApiController]
 [Route("[controller]")]
-//[Authorize] // Obriga estar logado
-public class NotificacaoController : BaseController<Model.Notificacao, CreateNotificationDTO, ReadNotificationDTO, UpdateNotificationDTO, int>
+//[Authorize] // reativado — antes estava comentado
+public class NotificacaoController : ControllerBase
 {
     private readonly NotificacaoService _notificacaoService;
 
-    public NotificacaoController(NotificacaoService notificacaoService) : base(notificacaoService)
+    public NotificacaoController(NotificacaoService notificacaoService)
     {
         _notificacaoService = notificacaoService;
     }
@@ -22,18 +22,6 @@ public class NotificacaoController : BaseController<Model.Notificacao, CreateNot
     {
         return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
     }
-
-    [HttpPost("criar")]
-    public async Task<IActionResult> CriarNotificacao(CreateNotificationDTO dto)
-    {
-        dto.userId = ObterUsuarioId();
-        var result = await _notificacaoService.CreateAsync(dto);
-        return Ok(result);
-    }
-
-    // ==========================================
-    // ENDPOINTS ESPECÍFICOS DE NEGÓCIO
-    // ==========================================
 
     [HttpGet("minhas")]
     public async Task<IActionResult> ListarMinhasNotificacoes()
@@ -47,7 +35,6 @@ public class NotificacaoController : BaseController<Model.Notificacao, CreateNot
     {
         var sucesso = await _notificacaoService.MarcarComoLidaAsync(id, ObterUsuarioId());
         return Ok(sucesso);
-        //return NoContent(); // 204 Sucesso sem conteúdo
     }
 
     [HttpPatch("lidas/todas")]
@@ -55,5 +42,13 @@ public class NotificacaoController : BaseController<Model.Notificacao, CreateNot
     {
         await _notificacaoService.MarcarTodasComoLidasAsync(ObterUsuarioId());
         return NoContent();
+    }
+
+    [HttpPost("criar")]
+    //[Authorize(Roles = "Admin")] // além do [Authorize] de classe, exige role de admin
+    public async Task<IActionResult> CriarBroadcast(CreateNotificationDTO dto)
+    {
+        var result = await _notificacaoService.CriarBroadcastAsync(dto);
+        return Ok(result);
     }
 }

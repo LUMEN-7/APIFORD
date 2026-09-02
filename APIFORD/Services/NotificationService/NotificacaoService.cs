@@ -2,118 +2,144 @@
 using APIFORD.Data.DTOS.Notifications;
 using APIFORD.Hubs;
 using APIFORD.Model;
+using APIFORD.Model.Notification;
+using APIFORD.Util;
 using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace APIFORD.Services.NotificationService;
 
-public class NotificacaoService : BaseService<Notificacao, CreateNotificationDTO, ReadNotificationDTO, UpdateNotificationDTO, int>
+public class NotificacaoService
 {
-    // Removi a declaração duplicada de _context e _mapper, pois elas 
-    // já existem protegidas no BaseService (Context e Mapper/DbSet).
+    private readonly FordDbContext _context;
+    private readonly IMapper _mapper;
     private readonly IHubContext<NotificacaoHub> _hubContext;
-    public NotificacaoService(
-        FordDbContext context,
-        IMapper mapper,
-        IHubContext<NotificacaoHub> hubContext) : base(context, mapper)
+
+    public NotificacaoService(FordDbContext context, IMapper mapper, IHubContext<NotificacaoHub> hubContext)
     {
+        _context = context;
+        _mapper = mapper;
         _hubContext = hubContext;
     }
 
-    public override async Task<ReadNotificationDTO> CreateAsync(CreateNotificationDTO dto)
+    public async Task<ReadNotificationDTO> CriarBroadcastAsync(CreateNotificationDTO dto)
     {
-        Notificacao notificacao = Mapper.Map<Notificacao>(dto);
-        notificacao.Mensagem = dto.Mensagem.ToString();
-        // A DataCriacao e status de 'Lida = false' idealmente são setados no próprio modelo ou banco
+        var destinatarios = await ResolverDestinatariosAsync(dto);
 
-        await DbSet.AddAsync(notificacao);
-        await Context.SaveChangesAsync();
+        if (!destinatarios.Any())
+            throw new InvalidOperationException("Nenhum destinatário encontrado para essa notificação.");
 
-        // TODO Futuro: É exatamente AQUI que você chamaria o SignalR para empurrar 
-        // a notificação para a tela do usuário em tempo real!
+        var evento = new NotificacaoEvento
+        {
+            Tipo = dto.Tipo,
+            Titulo = dto.Titulo,
+            Subtitulo = dto.Subtitulo,
+            Mensagem = dto.Mensagem,
+            DataCriacao = DateTime.UtcNow,
+            Destinatarios = destinatarios.Select(userId => new NotificacaoUsuario
+            {
+                UserId = userId,
+                Lida = false
+            }).ToList()
+        };
 
-        return Mapper.Map<ReadNotificationDTO>(notificacao);
+        await _context.NotificacoesEventos.AddAsync(evento);
+        await _context.SaveChangesAsync(); // 1 única chamada: EF Core resolve a FK pela navegação
+
+        await DispararPushAsync(evento.Destinatarios.ToList());
+
+        return _mapper.Map<ReadNotificationDTO>(evento.Destinatarios.First());
     }
 
-    public async Task NotificarAtualizacaoCarroAsync(int carroId, string marca, string modelo)
+    // Mantém a mesma assinatura de antes -> o CarroInternoController continua funcionando sem mudar nada
+    public async Task NotificarAtualizacaoCarroAsync(int linhagemId, string marca, string modelo)
     {
-        // 1. Descobre todos os usuários que favoritaram esse carro específico
-        var usuariosInteressados = await Context.ModeloSalvos
-            .Where(ms => ms.CarroId == carroId)
-            .Select(ms => ms.UserId)
-            .ToListAsync();
-
-        if (!usuariosInteressados.Any()) return; // Ninguém favoritou, aborta.
-
-        // 2. Prepara as notificações para o banco de dados
-        string mensagemAlerta = $"O veículo {marca} {modelo} que está nos seus favoritos acaba de receber uma atualização de dados!";
-
-        var novasNotificacoes = usuariosInteressados.Select(userId => new Notificacao
+        await CriarBroadcastAsync(new CreateNotificationDTO
         {
-            UserId = userId,
+            Tipo = 0, // ajusta pro valor/enum que representa "atualização de veículo"
             Titulo = "Atualização de Veículo",
-            Mensagem = mensagemAlerta,
-            Lida = false,
-            DataCriacao = DateTime.UtcNow
-        }).ToList();
+            Mensagem = $"O veículo {marca} {modelo} que está nos seus favoritos acaba de receber uma atualização de dados!",
+            TipoDestino = TipoDestinoNotificacao.FavoritantesDeCarro,
+            LinhagemId = linhagemId
+        });
+    }
 
-        // 3. Salva todas de uma vez no banco (Performance)
-        await DbSet.AddRangeAsync(novasNotificacoes);
-        await Context.SaveChangesAsync();
-
-        // 4. Mapeia para DTO para não vazar a entidade do banco no WebSocket
-        var notificacoesDto = Mapper.Map<List<ReadNotificationDTO>>(novasNotificacoes);
-
-        // 5. Dispara o Push Notification (SignalR) apenas para os interessados
-        foreach (var notificacaoDto in notificacoesDto)
+    private async Task<List<string>> ResolverDestinatariosAsync(CreateNotificationDTO dto)
+    {
+        return dto.TipoDestino switch
         {
-            // Envia apenas para o Client que possui o JWT do UserId correspondente
-            await _hubContext.Clients
-                .User(notificacaoDto.UserId)
-                .SendAsync("ReceberNovaNotificacao", notificacaoDto);
-        }
+            TipoDestinoNotificacao.Todos =>
+                await _context.Users.Select(u => u.Id).Distinct().ToListAsync(), // ajusta pro seu DbSet de usuários
+
+            TipoDestinoNotificacao.UsuariosEspecificos =>
+                dto.UserIds ?? new List<string>(),
+
+            TipoDestinoNotificacao.FavoritantesDeCarro =>
+                await _context.ModeloSalvos
+                    .Include(ms => ms.Carro)
+                    .Where(ms => ms.Carro.LinhagemId == dto.LinhagemId)
+                    .Select(ms => ms.UserId)
+                    .Distinct()
+                    .ToListAsync(),
+
+            _ => throw new ArgumentOutOfRangeException(nameof(dto.TipoDestino))
+        };
     }
 
     public async Task<List<ReadNotificationDTO>> ListarNotificacoesDoUsuarioAsync(string usuarioId)
     {
-        // Garante que traz apenas as notificações do usuário logado, ordenadas pelas mais recentes
-        var notificacoes = await DbSet
-            .Where(n => n.UserId == usuarioId) // Assumindo que Notificacao tem UserId
-            .OrderByDescending(n => n.DataCriacao)
+        var notificacoes = await _context.NotificacoesUsuarios
+            .Include(nu => nu.Evento) // obrigatório - o AutoMapper depende disso
+            .Where(nu => nu.UserId == usuarioId)
+            .OrderByDescending(nu => nu.Evento.DataCriacao)
             .ToListAsync();
 
-        return Mapper.Map<List<ReadNotificationDTO>>(notificacoes);
+        return _mapper.Map<List<ReadNotificationDTO>>(notificacoes);
     }
 
     public async Task<bool> MarcarComoLidaAsync(int id, string usuarioId)
     {
-        // Busca garantindo que a notificação pertence ao usuário que pediu a alteração
-        var notificacao = await DbSet
-            .FirstOrDefaultAsync(n => n.Id == id && n.UserId == usuarioId);
+        var notificacao = await _context.NotificacoesUsuarios
+            .FirstOrDefaultAsync(nu => nu.Id == id && nu.UserId == usuarioId);
 
         if (notificacao == null) return false;
 
-        notificacao.Lida = true; // Assumindo que sua model Notificacao tem um bool Lida
-        await Context.SaveChangesAsync();
+        notificacao.Lida = true;
+        notificacao.DataLeitura = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
         return true;
     }
 
     public async Task<bool> MarcarTodasComoLidasAsync(string usuarioId)
     {
-        var notificacoesNaoLidas = await DbSet
-            .Where(n => n.UserId == usuarioId && !n.Lida)
+        var naoLidas = await _context.NotificacoesUsuarios
+            .Where(nu => nu.UserId == usuarioId && !nu.Lida)
             .ToListAsync();
 
-        if (!notificacoesNaoLidas.Any()) return true;
+        if (!naoLidas.Any()) return true;
 
-        foreach (var notif in notificacoesNaoLidas)
+        var agora = DateTime.UtcNow;
+        foreach (var notif in naoLidas)
         {
             notif.Lida = true;
+            notif.DataLeitura = agora;
         }
 
-        await Context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         return true;
+    }
+
+    // ponto 7 — o disparo do SignalR
+    private async Task DispararPushAsync(List<NotificacaoUsuario> notificacoes)
+    {
+        var envios = notificacoes.Select(nu =>
+        {
+            var dto = _mapper.Map<ReadNotificationDTO>(nu);
+            return _hubContext.Clients.User(nu.UserId).SendAsync("ReceberNovaNotificacao", dto);
+        });
+
+        await Task.WhenAll(envios); // antes era foreach+await sequencial; agora dispara em paralelo
     }
 }

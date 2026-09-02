@@ -25,20 +25,21 @@ public class PesquisaService
     private readonly IMapper _mapper;
     private readonly HelperService _helperService;
     private readonly NotificacaoService _notificacaoService;
-
+    private readonly CarroService _carroService;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
 
-    public PesquisaService(HelperService helperService, HttpClient httpClient, FordDbContext context, IMapper mapper, NotificacaoService notificacaoService)
+    public PesquisaService(HelperService helperService, HttpClient httpClient, FordDbContext context, IMapper mapper, NotificacaoService notificacaoService, CarroService carroService)
     {
         _helperService = helperService;
         _httpClient = httpClient;
         _context = context;
         _mapper = mapper;
         _notificacaoService = notificacaoService;
+        _carroService = carroService;
     }
 
     // -------------------------------------------------------------------------
@@ -96,41 +97,20 @@ public class PesquisaService
     // -------------------------------------------------------------------------
     // Processamento do C# - Refatorado para o padrão JSONB
     // -------------------------------------------------------------------------
-    private async Task<ReadCarroDTO> ProcessarESalvarCarro(Job job)
-    {
-        var createCarroDto = JsonSerializer.Deserialize<CreateCarroDTO>(job.Result!, _jsonOptions);
-        if (createCarroDto == null)
-            throw new ApplicationException("Resultado do job está vazio ou inválido.");
+   private async Task<ReadCarroDTO> ProcessarESalvarCarro(Job job)
+{
+    var resultado = JsonSerializer.Deserialize<JobResultDTO>(job.Result!, _jsonOptions);
+    if (resultado == null || resultado.CarroId <= 0)
+        throw new ApplicationException("Resultado do job não trouxe um CarroId válido.");
 
-        var carroEntity = _mapper.Map<Carro>(createCarroDto);
+    var carro = await _context.Carros.FirstOrDefaultAsync(c => c.Id == resultado.CarroId);
+    if (carro == null)
+        throw new KeyNotFoundException($"Python reportou CarroId {resultado.CarroId}, mas ele não foi encontrado no banco.");
 
-        var carroExistente = await _context.Carros.FirstOrDefaultAsync(c =>
-        c.Marca == carroEntity.Marca && c.Modelo == carroEntity.Modelo && c.Ano == carroEntity.Ano);
-
-        //if (carroExistente != null)
-        //{
-        //    var (readDtoExistente, _) = await _carroService.AtualizarCarroComNovosDadosAsync(carroExistente.Id, carroEntity);
-        //    return readDtoExistente;
-        //}
-
-        // Toda a iteração de Context.Modos foi removida. O C# confia no JSON!
-        await _helperService.SincronizarEInjetarIdsDeFontesAsync(carroEntity);
-
-        await _context.Carros.AddAsync(carroEntity);
-        await _context.SaveChangesAsync();
-
-        // Busca o carro final sem precisar de nenhum JOIN/Include
-        var carroCompleto = await _context.Carros
-            .FirstOrDefaultAsync(c => c.Id == carroEntity.Id);
-
-        if (carroCompleto == null)
-            throw new KeyNotFoundException("Veículo processado mas não encontrado no banco.");
-
-        var readCarroDto = _mapper.Map<ReadCarroDTO>(carroCompleto);
-        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carroCompleto);
-        await _notificacaoService.NotificarAtualizacaoCarroAsync(carroCompleto.Id, carroCompleto.Marca, carroCompleto.Modelo);
-        return readCarroDto;
-    }
+    var readDto = _mapper.Map<ReadCarroDTO>(carro);
+    await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carro);
+    return readDto;
+}
 }
 
 // DTO interno refatorado para int
@@ -138,4 +118,9 @@ internal record PythonJobResponse
 {
     [System.Text.Json.Serialization.JsonPropertyName("job_id")]
     public Guid JobId { get; init; }
+}
+
+internal record JobResultDTO
+{
+    public int CarroId { get; init; }
 }

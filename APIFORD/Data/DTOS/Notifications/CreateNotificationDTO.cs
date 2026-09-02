@@ -7,17 +7,15 @@ namespace APIFORD.Data.DTOS.Notifications;
 public class CreateNotificationDTO
 {
 
-    [Required(ErrorMessage = "O tipo de notificação é obrigatório.\n Tipos validos: \n\t    EMPRESA,\r\n    Carro,\r\n    UPDATE,\r\n    REPORT")]
     public NotificationTypes Tipo { get; set; }
-
-    [Required(ErrorMessage = "O título é obrigatório.")]
-    public string Titulo { get; set; }
-    public string? userId { get; set; }
-
+    public string Titulo { get; set; } = string.Empty;
     public string? Subtitulo { get; set; }
+    public string Mensagem { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "O conteúdo é obrigatório.")]
-    public string Mensagem { get; set; }
+    public TipoDestinoNotificacao TipoDestino { get; set; }
+
+    public List<string>? UserIds { get; set; }     
+    public int? LinhagemId { get; set; }
 
     public bool Lido { get; set; } = false;
 
