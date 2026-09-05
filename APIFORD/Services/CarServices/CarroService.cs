@@ -46,7 +46,6 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
 
         var readCarroDto = Mapper.Map<ReadCarroDTO>(carro);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
-        await _notificacaoService.NotificarAtualizacaoCarroAsync(carro.Id, carro.Marca, carro.Modelo);
 
         return readCarroDto;
     }

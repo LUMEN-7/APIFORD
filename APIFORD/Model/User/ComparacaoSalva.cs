@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace APIFORD.Model;
+namespace APIFORD.Model.User;
 
 public class ComparacaoSalva
 {

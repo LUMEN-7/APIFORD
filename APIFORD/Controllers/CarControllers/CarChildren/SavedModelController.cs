@@ -1,8 +1,7 @@
 ﻿using APIFORD.Data.DTOS.CarrosDto.SavedModel;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
-using APIFORD.Model;
+using APIFORD.Model.User;
 using APIFORD.Services.CarroServices.CarroChildren;
-using APIFORD.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIFORD.Controllers.CarroControllers.CarroChildren;

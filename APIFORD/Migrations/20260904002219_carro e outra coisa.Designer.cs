@@ -3,6 +3,7 @@ using System;
 using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class FordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260904002219_carro e outra coisa")]
+    partial class carroeoutracoisa
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,6 +112,51 @@ namespace APIFORD.Migrations
                     b.ToTable("fontes", (string)null);
                 });
 
+            modelBuilder.Entity("APIFORD.Model.ComparacaoSalva", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataSalvamento")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_salvamento");
+
+                    b.Property<string>("RequestPayload")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("request_payload");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("titulo");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_comparacoes_salvas");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_comparacoes_salvas_user_id");
+
+                    b.ToTable("comparacoes_salvas", (string)null);
+                });
+
             modelBuilder.Entity("APIFORD.Model.Job", b =>
                 {
                     b.Property<Guid>("Id")
@@ -155,6 +203,29 @@ namespace APIFORD.Migrations
                         .HasName("pk_jobs");
 
                     b.ToTable("jobs", (string)null);
+                });
+
+            modelBuilder.Entity("APIFORD.Model.ModeloSalvo", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("CarroId")
+                        .HasColumnType("integer")
+                        .HasColumnName("carro_id");
+
+                    b.Property<DateTime>("DataSalvo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("data_salvo");
+
+                    b.HasKey("UserId", "CarroId")
+                        .HasName("pk_modelo_salvos");
+
+                    b.HasIndex("CarroId")
+                        .HasDatabaseName("ix_modelo_salvos_carro_id");
+
+                    b.ToTable("modelo_salvos", (string)null);
                 });
 
             modelBuilder.Entity("APIFORD.Model.Notification.NotificacaoEvento", b =>
@@ -236,209 +307,7 @@ namespace APIFORD.Migrations
                     b.ToTable("notificacoes_usuarios", (string)null);
                 });
 
-            modelBuilder.Entity("APIFORD.Model.Schedule.AgendamentoPesquisa", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("Ano")
-                        .HasColumnType("integer")
-                        .HasColumnName("ano");
-
-                    b.Property<DateTime>("CriadoEm")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("criado_em");
-
-                    b.Property<string>("Marca")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("marca");
-
-                    b.Property<string>("Modelo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("modelo");
-
-                    b.Property<DateTime>("ProximaExecucao")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("proxima_execucao");
-
-                    b.Property<string>("Recorrencia")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("recorrencia");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<DateTime?>("UltimaExecucao")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("ultima_execucao");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_agendamentos_pesquisa");
-
-                    b.ToTable("agendamentos_pesquisa", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Schedule.EscutaLancamento", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("Ano")
-                        .HasColumnType("integer")
-                        .HasColumnName("ano");
-
-                    b.Property<DateTime>("CriadoEm")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("criado_em");
-
-                    b.Property<DateTime?>("ExpiraEm")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expira_em");
-
-                    b.Property<string>("Marca")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("marca");
-
-                    b.Property<string>("Modelo")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("modelo");
-
-                    b.Property<DateTime>("ProximaTentativa")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("proxima_tentativa");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid?>("UltimoJobId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("ultimo_job_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_escutas_lancamento");
-
-                    b.ToTable("escutas_lancamento", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.ComparacaoSalva", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DataSalvamento")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("data_salvamento");
-
-                    b.Property<string>("RequestPayload")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("request_payload");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("tipo");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("titulo");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_comparacoes_salvas");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_comparacoes_salvas_user_id");
-
-                    b.ToTable("comparacoes_salvas", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.EscutaLancamentoUsuario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("EscutaLancamentoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("escuta_lancamento_id");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_escutas_lancamento_usuario");
-
-                    b.HasIndex("EscutaLancamentoId", "UserId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_escutas_lancamento_usuario_escuta_lancamento_id_user_id");
-
-                    b.ToTable("escutas_lancamento_usuario", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.ModeloSalvo", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("CarroId")
-                        .HasColumnType("integer")
-                        .HasColumnName("carro_id");
-
-                    b.Property<DateTime>("DataSalvo")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("data_salvo");
-
-                    b.HasKey("UserId", "CarroId")
-                        .HasName("pk_modelo_salvos");
-
-                    b.HasIndex("CarroId")
-                        .HasDatabaseName("ix_modelo_salvos_carro_id");
-
-                    b.ToTable("modelo_salvos", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.User", b =>
+            modelBuilder.Entity("APIFORD.Model.User", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text")
@@ -2062,6 +1931,27 @@ namespace APIFORD.Migrations
                     b.Navigation("Pneus");
                 });
 
+            modelBuilder.Entity("APIFORD.Model.ModeloSalvo", b =>
+                {
+                    b.HasOne("APIFORD.Model.CarroClasses.Carro", "Carro")
+                        .WithMany("SalvoUsuario")
+                        .HasForeignKey("CarroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_modelo_salvos_carros_carro_id");
+
+                    b.HasOne("APIFORD.Model.User", "User")
+                        .WithMany("ModelosSalvos")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_modelo_salvos_users_user_id");
+
+                    b.Navigation("Carro");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("APIFORD.Model.Notification.NotificacaoUsuario", b =>
                 {
                     b.HasOne("APIFORD.Model.Notification.NotificacaoEvento", "Evento")
@@ -2072,39 +1962,6 @@ namespace APIFORD.Migrations
                         .HasConstraintName("fk_notificacoes_usuarios_notificacoes_eventos_notificacao_even");
 
                     b.Navigation("Evento");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.EscutaLancamentoUsuario", b =>
-                {
-                    b.HasOne("APIFORD.Model.Schedule.EscutaLancamento", "EscutaLancamento")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("EscutaLancamentoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_escutas_lancamento_usuario_escutas_lancamento_escuta_lancam");
-
-                    b.Navigation("EscutaLancamento");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.ModeloSalvo", b =>
-                {
-                    b.HasOne("APIFORD.Model.CarroClasses.Carro", "Carro")
-                        .WithMany("SalvoUsuario")
-                        .HasForeignKey("CarroId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_modelo_salvos_carros_carro_id");
-
-                    b.HasOne("APIFORD.Model.User.User", "User")
-                        .WithMany("ModelosSalvos")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_modelo_salvos_users_user_id");
-
-                    b.Navigation("Carro");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2119,7 +1976,7 @@ namespace APIFORD.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("APIFORD.Model.User.User", null)
+                    b.HasOne("APIFORD.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2129,7 +1986,7 @@ namespace APIFORD.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("APIFORD.Model.User.User", null)
+                    b.HasOne("APIFORD.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2146,7 +2003,7 @@ namespace APIFORD.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
-                    b.HasOne("APIFORD.Model.User.User", null)
+                    b.HasOne("APIFORD.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2156,7 +2013,7 @@ namespace APIFORD.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("APIFORD.Model.User.User", null)
+                    b.HasOne("APIFORD.Model.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2174,12 +2031,7 @@ namespace APIFORD.Migrations
                     b.Navigation("Destinatarios");
                 });
 
-            modelBuilder.Entity("APIFORD.Model.Schedule.EscutaLancamento", b =>
-                {
-                    b.Navigation("Usuarios");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.User.User", b =>
+            modelBuilder.Entity("APIFORD.Model.User", b =>
                 {
                     b.Navigation("ModelosSalvos");
                 });

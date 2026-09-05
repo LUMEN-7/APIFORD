@@ -65,6 +65,35 @@ public class NotificacaoService
         });
     }
 
+    public async Task NotificarLancamentoAsync(List<string> userIds, int linhagemId, string marca, string modelo)
+    {
+        if (!userIds.Any()) return;
+
+        var evento = new NotificacaoEvento
+        {
+            Tipo = NotificationTypes.LANCAMENTO, // PLACEHOLDER — trocar pelo enum/valor certo de "lançamento" quando eu souber
+            Titulo = $"{marca} {modelo} já está disponível!",
+            Mensagem = $"O carro que você estava esperando ({marca} {modelo}) apareceu nas nossas fontes.",
+            DataCriacao = DateTime.UtcNow
+        };
+
+        await _context.NotificacoesEventos.AddAsync(evento); // nome do DbSet — confere se bate com o seu
+        await _context.SaveChangesAsync(); // gera o Id do evento antes de linkar os usuários
+
+        var notificacoesUsuario = userIds.Select(userId => new NotificacaoUsuario
+        {
+            NotificacaoEventoId = evento.Id,
+            UserId = userId,
+            Lida = false
+        }).ToList();
+
+        await _context.NotificacoesUsuarios.AddRangeAsync(notificacoesUsuario);
+        await _context.SaveChangesAsync();
+
+        foreach (var userId in userIds)
+            await _hubContext.Clients.User(userId).SendAsync("ReceberNovaNotificacao", evento);
+    }
+
     private async Task<List<string>> ResolverDestinatariosAsync(CreateNotificationDTO dto)
     {
         return dto.TipoDestino switch

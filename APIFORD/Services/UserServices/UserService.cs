@@ -2,7 +2,7 @@
 using APIFORD.Data.DTOS.CarrosDto.SavedModel;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.User;
-using APIFORD.Model;
+using APIFORD.Model.User;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using System.Reflection;

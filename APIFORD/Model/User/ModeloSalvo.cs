@@ -1,6 +1,6 @@
 ﻿using APIFORD.Model.CarroClasses;
 
-namespace APIFORD.Model;
+namespace APIFORD.Model.User;
 
 public class ModeloSalvo
 {

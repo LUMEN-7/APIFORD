@@ -2,6 +2,7 @@
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Comparison;
 using APIFORD.Model;
+using APIFORD.Model.User;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 

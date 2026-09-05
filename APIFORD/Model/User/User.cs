@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace APIFORD.Model;
+namespace APIFORD.Model.User;
 
 public class User : IdentityUser
 {

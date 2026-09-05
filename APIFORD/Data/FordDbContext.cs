@@ -3,6 +3,8 @@
 using APIFORD.Model;
 using APIFORD.Model.CarroClasses;
 using APIFORD.Model.Notification;
+using APIFORD.Model.Schedule;
+using APIFORD.Model.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
@@ -23,6 +25,10 @@ public class FordDbContext : IdentityDbContext<User>
     public DbSet<ComparacaoSalva> ComparacoesSalvas { get; set; }
     public DbSet<NotificacaoEvento> NotificacoesEventos { get; set; }
     public DbSet<NotificacaoUsuario> NotificacoesUsuarios { get; set; }
+
+    public DbSet<AgendamentoPesquisa> AgendamentosPesquisa { get; set; }
+    public DbSet<EscutaLancamento> EscutasLancamento { get; set; }
+    public DbSet<EscutaLancamentoUsuario> EscutasLancamentoUsuario { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -115,12 +121,40 @@ public class FordDbContext : IdentityDbContext<User>
                 .HasColumnType("jsonb");
         });
 
+        // Dentro de OnModelCreating
+        builder.Entity<AgendamentoPesquisa>(entity =>
+        {
+            
+            entity.Property(a => a.Status).HasConversion<string>();
+            entity.Property(a => a.Recorrencia).HasConversion<string>();
+        });
+
+        builder.Entity<EscutaLancamento>(entity =>
+        {
+            
+            entity.Property(e => e.Status).HasConversion<string>();
+
+            entity.HasMany(e => e.Usuarios)
+                .WithOne(u => u.EscutaLancamento)
+                .HasForeignKey(u => u.EscutaLancamentoId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<EscutaLancamentoUsuario>(entity =>
+        {
+            
+            // Trava duplicidade no nível do banco também, não só na checagem do service
+            entity.HasIndex(u => new { u.EscutaLancamentoId, u.UserId }).IsUnique();
+        });
+
         // ==========================================
         // 🔄 MÁGICA DO POSTGRES: MAPEAMENTO JSONB
         // ==========================================
         builder.Entity<Carro>(entity =>
         {
-
+            entity.Property(c => c.ImagemUrl)
+                .HasMaxLength(500) // Tamanho seguro para URLs longas
+                .IsRequired(false); // Deixe falso (nullable) caso um carro recém-cadastrado ainda não tenha foto
             // === NOSSOS NOVOS ENVELOPES ===
 
             // Categoria (string)

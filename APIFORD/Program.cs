@@ -1,8 +1,9 @@
 using APIFORD.Data;
 using APIFORD.Hubs;
-using APIFORD.Model;
+using APIFORD.Model.User;
 using APIFORD.Perfils;
 using APIFORD.Services;
+using APIFORD.Services.Schedule;
 using APIFORD.Services.Search;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -106,7 +107,8 @@ builder.Services.Scan(scan => scan
     .AsImplementedInterfaces() // Regista como IBaseService<...>
     .WithScopedLifetime() // Define o tempo de vida como Scoped
 );
-// Adicione esta linha no seu Program.cs
+
+builder.Services.AddHostedService<AgendamentoWorkerService>();
 
 
 // ==========================================

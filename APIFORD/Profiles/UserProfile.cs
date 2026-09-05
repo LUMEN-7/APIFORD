@@ -1,6 +1,6 @@
 ﻿using APIFORD.Data.DTOS.Comparison;
 using APIFORD.Data.DTOS.User;
-using APIFORD.Model;
+using APIFORD.Model.User;
 using AutoMapper;
 
 namespace APIFORD.Perfils;

@@ -1,4 +1,4 @@
-﻿namespace APIFORD.Services.Interfaces;
+﻿namespace APIFORD.Services;
 
 public interface IBaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey> where TEntity : class
 {

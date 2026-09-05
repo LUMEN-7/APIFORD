@@ -2,8 +2,8 @@
 using APIFORD.Data.DTOS.CarrosDto;
 using APIFORD.Data.DTOS.CarrosDto.SavedModel;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
-using APIFORD.Model;
 using APIFORD.Model.CarroClasses;
+using APIFORD.Model.User;
 using AutoMapper;
 
 namespace APIFORD.Perfils;
@@ -55,6 +55,6 @@ public class CarroPerfil : Profile
 
         CreateMap<IEnumerable<ModeloSalvo>, ReadModeloSalvoDTO>()
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Select(sm => sm.UserId).FirstOrDefault()))
-            .ForMember(dest => dest.FavoriteCarros, opt => opt.MapFrom(src => src.Select(sm => sm.Carro).ToList()));
+            .ForMember(dest => dest.FavoriteCarros, opt => opt.Ignore()); // preenchido manualmente no service, precisa de acesso ao banco
     }
 }

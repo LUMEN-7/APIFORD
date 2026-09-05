@@ -1,4 +1,6 @@
-﻿namespace APIFORD.Model.CarroClasses;
+﻿using APIFORD.Model.User;
+
+namespace APIFORD.Model.CarroClasses;
 
 public class Carro
 {
@@ -9,6 +11,7 @@ public class Carro
     public bool Excluido { get; set; } = false;
     public int LinhagemId { get; set; }
     public int? VersaoAnteriorId { get; set; }
+    public string ImagemUrl { get; set; } = string.Empty;
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
     public  ICollection<ModeloSalvo> SalvoUsuario { get; set; } = new List<ModeloSalvo>();

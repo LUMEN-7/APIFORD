@@ -1,4 +1,4 @@
-﻿using APIFORD.Model;
+﻿using APIFORD.Model.User;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

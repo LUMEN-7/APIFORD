@@ -5,6 +5,8 @@ public enum NotificationTypes
     EMPRESA,
     CARRO,
     UPDATE,
+    LANCAMENTO,
+    SYSTEM,
     REPORT
 }
 
