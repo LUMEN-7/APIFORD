@@ -108,13 +108,12 @@ builder.Services.Scan(scan => scan
     .WithScopedLifetime() // Define o tempo de vida como Scoped
 );
 
-builder.Services.AddHostedService<AgendamentoWorkerService>();
+builder.Services.AddHostedService<AgendamentoWorker>();
 
 
 // ==========================================
 // 5. CONFIGURAÇÕES DA API E FERRAMENTAS
 // ==========================================
-builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));

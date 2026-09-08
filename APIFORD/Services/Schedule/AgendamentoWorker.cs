@@ -1,12 +1,12 @@
 ﻿namespace APIFORD.Services.Schedule;
 
-public class AgendamentoWorkerService : BackgroundService
+public class AgendamentoWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<AgendamentoWorkerService> _logger;
-    private static readonly TimeSpan Intervalo = TimeSpan.FromMinutes(15);
+    private readonly ILogger<AgendamentoWorker> _logger;
+    private static readonly TimeSpan Intervalo = TimeSpan.FromMinutes(1);
 
-    public AgendamentoWorkerService(IServiceScopeFactory scopeFactory, ILogger<AgendamentoWorkerService> logger)
+    public AgendamentoWorker(IServiceScopeFactory scopeFactory, ILogger<AgendamentoWorker> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;

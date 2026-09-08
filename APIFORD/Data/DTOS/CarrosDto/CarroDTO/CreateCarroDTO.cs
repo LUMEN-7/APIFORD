@@ -6,6 +6,7 @@ public record CreateCarroDTO(
     string Modelo,
     string Marca,
     int Ano,
+    string? ImagemUrl,
     List<EspecificacaoDTO>? Especificacoes = null,
     List<ConsumoDTO>? Consumos = null,
     List<DimensaoDTO>? Dimensoes = null,

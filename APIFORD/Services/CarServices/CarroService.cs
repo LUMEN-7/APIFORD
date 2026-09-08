@@ -1,6 +1,7 @@
 ﻿using APIFORD.Data;
 using APIFORD.Data.DTOS.CarrosDto;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
+using APIFORD.Middleware;
 using APIFORD.Model.CarroClasses;
 using APIFORD.Services.NotificationService;
 using AutoMapper;
@@ -53,7 +54,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
     public override async Task<ReadCarroDTO> GetByIdAsync(int id)
     {
         var carro = await DbSet.FirstOrDefaultAsync(c => c.Id == id); // Zero Includes!
-        if (carro == null) throw new KeyNotFoundException("Veículo não encontrado.");
+        if (carro == null) throw new NotFoundException("Veículo não encontrado.");
 
         var readCarroDto = Mapper.Map<ReadCarroDTO>(carro);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readCarroDto, carro);
@@ -61,10 +62,13 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         return readCarroDto;
     }
 
-    public async Task<ReadCarroDTO> EditarPropriedadesAdminAsync(int carroId, Dictionary<string, object> alteracoes, int adminId)
+    public async Task<ReadCarroDTO> EditarPropriedadesAdminAsync(int carroId, Dictionary<string, object> alteracoes, string adminId)
     {
+        if (alteracoes == null || alteracoes.Count == 0)
+            throw new BadRequestException("Nenhuma alteração enviada no payload.");
+
         var carroOriginal = await DbSet.AsNoTracking().FirstOrDefaultAsync(c => c.Id == carroId);
-        if (carroOriginal == null) throw new KeyNotFoundException("Carro não encontrado.");
+        if (carroOriginal == null) throw new NotFoundException("Carro não encontrado.");
 
         var novaVersao = System.Text.Json.JsonSerializer.Deserialize<Carro>(System.Text.Json.JsonSerializer.Serialize(carroOriginal))!;
         novaVersao.Id = 0;
@@ -146,7 +150,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
             .FirstOrDefaultAsync(c => c.Id == carroExistenteId);
 
         if (versaoAtual == null)
-            throw new KeyNotFoundException("Carro não encontrado.");
+            throw new NotFoundException("Carro não encontrado.");
 
         // Clona a versão atual (via serialização, evita precisar de um profile novo no AutoMapper)
         var novaVersao = JsonSerializer.Deserialize<Carro>(JsonSerializer.Serialize(versaoAtual))!;
@@ -187,9 +191,12 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
             .OrderByDescending(c => c.Id)
             .FirstOrDefaultAsync();
 
-        if (carro == null) return null;
+        if (carro == null) throw new NotFoundException("Veículo não encontrado.");
+        
         var dto = Mapper.Map<ReadCarroDTO>(carro);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dto, carro);
+
+        if (dto == null) throw new InternalServerErrorException("Veículo não encontrado.");
         return dto;
     }
 

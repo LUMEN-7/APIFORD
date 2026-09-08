@@ -32,10 +32,15 @@ public class ExceptionMiddleware
         // Mapeia o tipo de exceção do C# para o Status Code correto do HTTP
         context.Response.StatusCode = exception switch
         {
-            ApplicationException => (int)HttpStatusCode.BadRequest, // Erro de validação/negócio
-            KeyNotFoundException => (int)HttpStatusCode.NotFound,   // Registro não existe
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized, // Sem autorização
-            _ => (int)HttpStatusCode.InternalServerError // Erro interno do servidor (500)
+            ServiceUnavailableException => (int)HttpStatusCode.ServiceUnavailable, // 503
+            BadRequestException => (int)HttpStatusCode.BadRequest, // 400
+            UnauthorizedException => (int)HttpStatusCode.Unauthorized, // 401
+            ForbiddenException => (int)HttpStatusCode.Forbidden, // 403
+            NotFoundException => (int)HttpStatusCode.NotFound, // 404
+            ConflictException => (int)HttpStatusCode.Conflict, // 409
+            ValidationException => (int)HttpStatusCode.UnprocessableEntity, // 422
+            ExternalServiceException => (int)HttpStatusCode.BadGateway, // 502
+            _ => (int)HttpStatusCode.InternalServerError
         };
 
         var response = new

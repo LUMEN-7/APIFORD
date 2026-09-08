@@ -10,12 +10,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace APIFORD.Services.NotificationService;
 
+/// <summary>
+/// Serviço responsável pela criação, distribuição e gerenciamento de notificações dos usuários,
+/// incluindo o disparo em tempo real via SignalR (<see cref="NotificacaoHub"/>) para os
+/// destinatários resolvidos (todos os usuários, usuários específicos ou favoritantes de um carro).
+/// </summary>
 public class NotificacaoService
 {
     private readonly FordDbContext _context;
     private readonly IMapper _mapper;
     private readonly IHubContext<NotificacaoHub> _hubContext;
-
+    
+    /// <summary>
+    /// Inicializa uma nova instância do <see cref="NotificacaoService"/>.
+    /// </summary>
+    /// <param name="context">Contexto do banco de dados Ford.</param>
+    /// <param name="mapper">Mapeador AutoMapper para conversão entre entidades e DTOs.</param>
+    /// <param name="hubContext">Contexto do hub SignalR utilizado para enviar notificações em tempo real aos clientes conectados.</param>
     public NotificacaoService(FordDbContext context, IMapper mapper, IHubContext<NotificacaoHub> hubContext)
     {
         _context = context;
@@ -23,6 +34,17 @@ public class NotificacaoService
         _hubContext = hubContext;
     }
 
+    /// <summary>
+    /// Cria um evento de notificação e o distribui (broadcast) para todos os destinatários
+    /// resolvidos a partir do tipo de destino informado, persistindo o evento e disparando
+    /// o push em tempo real via SignalR.
+    /// </summary>
+    /// <param name="dto">
+    /// Dados da notificação a ser criada, incluindo tipo, título, mensagem e o tipo de destino
+    /// (todos os usuários, usuários específicos ou favoritantes de um carro).
+    /// </param>
+    /// <returns>O <see cref="ReadNotificationDTO"/> referente ao primeiro destinatário do evento criado.</returns>
+    /// <exception cref="InvalidOperationException">Lançada quando nenhum destinatário é encontrado para a notificação.</exception>
     public async Task<ReadNotificationDTO> CriarBroadcastAsync(CreateNotificationDTO dto)
     {
         var destinatarios = await ResolverDestinatariosAsync(dto);
@@ -52,7 +74,14 @@ public class NotificacaoService
         return _mapper.Map<ReadNotificationDTO>(evento.Destinatarios.First());
     }
 
-    // Mantém a mesma assinatura de antes -> o CarroInternoController continua funcionando sem mudar nada
+    /// <summary>
+    /// Notifica os usuários que favoritaram um carro sobre uma atualização de dados na sua
+    /// linhagem. Mantém a mesma assinatura utilizada anteriormente para não exigir alterações
+    /// em quem já consome este método (ex: <c>CarroInternoController</c>).
+    /// </summary>
+    /// <param name="linhagemId">Id da linhagem do carro atualizado.</param>
+    /// <param name="marca">Marca do carro atualizado, usada na mensagem da notificação.</param>
+    /// <param name="modelo">Modelo do carro atualizado, usado na mensagem da notificação.</param>
     public async Task NotificarAtualizacaoCarroAsync(int linhagemId, string marca, string modelo)
     {
         await CriarBroadcastAsync(new CreateNotificationDTO
@@ -65,13 +94,22 @@ public class NotificacaoService
         });
     }
 
+    /// <summary>
+    /// Notifica uma lista específica de usuários sobre o lançamento/disponibilidade de um carro
+    /// que estava sendo aguardado, criando o evento de notificação, vinculando os destinatários
+    /// e disparando o push em tempo real via SignalR.
+    /// </summary>
+    /// <param name="userIds">Lista de Ids dos usuários a serem notificados. Se vazia, o método não faz nada.</param>
+    /// <param name="linhagemId">Id da linhagem do carro lançado.</param>
+    /// <param name="marca">Marca do carro lançado, usada no título e na mensagem da notificação.</param>
+    /// <param name="modelo">Modelo do carro lançado, usado no título e na mensagem da notificação.</param>
     public async Task NotificarLancamentoAsync(List<string> userIds, int linhagemId, string marca, string modelo)
     {
         if (!userIds.Any()) return;
 
         var evento = new NotificacaoEvento
         {
-            Tipo = NotificationTypes.LANCAMENTO, // PLACEHOLDER — trocar pelo enum/valor certo de "lançamento" quando eu souber
+            Tipo = NotificationTypes.LANCAMENTO, 
             Titulo = $"{marca} {modelo} já está disponível!",
             Mensagem = $"O carro que você estava esperando ({marca} {modelo}) apareceu nas nossas fontes.",
             DataCriacao = DateTime.UtcNow
@@ -94,6 +132,14 @@ public class NotificacaoService
             await _hubContext.Clients.User(userId).SendAsync("ReceberNovaNotificacao", evento);
     }
 
+    /// <summary>
+    /// Resolve a lista de Ids de usuários destinatários de uma notificação, de acordo com o
+    /// <see cref="TipoDestinoNotificacao"/> informado no DTO (todos os usuários, usuários
+    /// específicos informados diretamente, ou usuários que favoritaram carros de uma linhagem).
+    /// </summary>
+    /// <param name="dto">Dados da notificação contendo o tipo de destino e, conforme o caso, a lista de UserIds ou o Id da linhagem.</param>
+    /// <returns>Lista de Ids de usuários destinatários da notificação.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Lançada quando o <see cref="TipoDestinoNotificacao"/> informado não é reconhecido.</exception>
     private async Task<List<string>> ResolverDestinatariosAsync(CreateNotificationDTO dto)
     {
         return dto.TipoDestino switch
@@ -116,6 +162,11 @@ public class NotificacaoService
         };
     }
 
+    /// <summary>
+    /// Lista todas as notificações recebidas por um usuário, ordenadas da mais recente para a mais antiga.
+    /// </summary>
+    /// <param name="usuarioId">Id do usuário cujas notificações serão listadas.</param>
+    /// <returns>Lista de <see cref="ReadNotificationDTO"/> representando as notificações do usuário.</returns>
     public async Task<List<ReadNotificationDTO>> ListarNotificacoesDoUsuarioAsync(string usuarioId)
     {
         var notificacoes = await _context.NotificacoesUsuarios
@@ -127,6 +178,12 @@ public class NotificacaoService
         return _mapper.Map<List<ReadNotificationDTO>>(notificacoes);
     }
 
+    /// <summary>
+    /// Marca uma notificação específica de um usuário como lida, registrando a data/hora da leitura.
+    /// </summary>
+    /// <param name="id">Id da notificação (registro de <c>NotificacaoUsuario</c>) a ser marcada como lida.</param>
+    /// <param name="usuarioId">Id do usuário dono da notificação, usado para garantir que ele só marque as próprias notificações.</param>
+    /// <returns><c>true</c> se a notificação foi encontrada e marcada como lida; <c>false</c> caso não seja encontrada para o usuário informado.</returns>
     public async Task<bool> MarcarComoLidaAsync(int id, string usuarioId)
     {
         var notificacao = await _context.NotificacoesUsuarios
@@ -141,6 +198,12 @@ public class NotificacaoService
         return true;
     }
 
+    /// <summary>
+    /// Marca todas as notificações não lidas de um usuário como lidas, registrando a mesma
+    /// data/hora de leitura para todas.
+    /// </summary>
+    /// <param name="usuarioId">Id do usuário cujas notificações não lidas serão marcadas.</param>
+    /// <returns><c>true</c> em caso de sucesso (inclusive quando não havia notificações não lidas).</returns>
     public async Task<bool> MarcarTodasComoLidasAsync(string usuarioId)
     {
         var naoLidas = await _context.NotificacoesUsuarios
@@ -161,6 +224,11 @@ public class NotificacaoService
     }
 
     // ponto 7 — o disparo do SignalR
+    /// <summary>
+    /// Dispara, em paralelo, o push em tempo real via SignalR para cada destinatário de uma
+    /// lista de notificações de usuário, enviando o evento "ReceberNovaNotificacao" ao cliente conectado.
+    /// </summary>
+    /// <param name="notificacoes">Lista de notificações de usuário a serem enviadas via push.</param>
     private async Task DispararPushAsync(List<NotificacaoUsuario> notificacoes)
     {
         var envios = notificacoes.Select(nu =>

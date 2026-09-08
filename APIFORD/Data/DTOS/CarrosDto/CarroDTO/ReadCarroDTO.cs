@@ -9,7 +9,7 @@ public class ReadCarroDTO
     public string Marca { get; set; } = string.Empty;
     public int Ano { get; set; }
     public bool Excluido { get; set; }
-
+    public string ImagemUrl { get; set; }
     public List<EspecificacaoDTO> Especificacoes { get; set; } = new();
     public List<ConsumoDTO> Consumos { get; set; } = new();
     public List<PneuDTO> Pneus { get; set; } = new();
