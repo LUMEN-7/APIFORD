@@ -3,8 +3,10 @@ using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.User;
 using APIFORD.Model;
 using APIFORD.Services.UserServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace APIFORD.Controllers.UserControllers;
 
@@ -23,6 +25,7 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    private string ObterUsuarioId() => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     //===============
     //   Gets
@@ -88,12 +91,36 @@ public class UserController : ControllerBase
     /// <response code="200">Autenticação realizada com sucesso. Retorna o Token JWT.</response>
     /// <response code="400">Credenciais inválidas informadas.</response>
     [HttpPost("login")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Login([FromBody] LoginUserDTO dto)
+    public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginUserDTO dto)
+        => Ok(await _userService.Login(dto));
+
+    [HttpPost("login/google")]
+    public async Task<ActionResult<LoginResponseDTO>> LoginGoogle([FromBody] GoogleLoginDTO dto)
+        => Ok(await _userService.LoginComGoogleAsync(dto.IdToken));
+
+    [HttpPost("login/2fa")]
+    public async Task<ActionResult<LoginResponseDTO>> VerificarDoisFatores([FromBody] VerificarDoisFatoresDTO dto)
+        => Ok(await _userService.VerificarDoisFatoresELogarAsync(dto.TokenDesafio, dto.Codigo));
+
+    [Authorize]
+    [HttpPost("2fa/iniciar")]
+    public async Task<ActionResult<HabilitarDoisFatoresResponseDTO>> IniciarDoisFatores()
+        => Ok(await _userService.IniciarDoisFatoresAsync(ObterUsuarioId()));
+
+    [Authorize]
+    [HttpPost("2fa/confirmar")]
+    public async Task<IActionResult> ConfirmarDoisFatores([FromBody] ConfirmarAtivacaoDoisFatoresDTO dto)
     {
-        string token = await _userService.Login(dto);
-        return Ok(token);
+        await _userService.ConfirmarDoisFatoresAsync(ObterUsuarioId(), dto.Codigo);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpPost("2fa/desativar")]
+    public async Task<IActionResult> DesativarDoisFatores()
+    {
+        await _userService.DesativarDoisFatoresAsync(ObterUsuarioId());
+        return NoContent();
     }
 
 

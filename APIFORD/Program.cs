@@ -156,6 +156,7 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
 builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 
 // ==========================================
 // PIPELINE DE REQUISIÇÃO (MIDDLEWARES)

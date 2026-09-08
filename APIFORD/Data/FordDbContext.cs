@@ -1,6 +1,7 @@
 ﻿namespace APIFORD.Data;
 
 using APIFORD.Model;
+using APIFORD.Model.Annotation;
 using APIFORD.Model.CarroClasses;
 using APIFORD.Model.Notification;
 using APIFORD.Model.Schedule;
@@ -25,7 +26,7 @@ public class FordDbContext : IdentityDbContext<User>
     public DbSet<ComparacaoSalva> ComparacoesSalvas { get; set; }
     public DbSet<NotificacaoEvento> NotificacoesEventos { get; set; }
     public DbSet<NotificacaoUsuario> NotificacoesUsuarios { get; set; }
-
+    public DbSet<Anotacao> Anotacoes { get; set; }
     public DbSet<AgendamentoPesquisa> AgendamentosPesquisa { get; set; }
     public DbSet<EscutaLancamento> EscutasLancamento { get; set; }
     public DbSet<EscutaLancamentoUsuario> EscutasLancamentoUsuario { get; set; }
@@ -52,7 +53,17 @@ public class FordDbContext : IdentityDbContext<User>
                 .HasDatabaseName("ix_notificacoes_usuarios_user_lida");
         });
 
-
+        // ==========================================
+        // TABELA WORKER: JOBS
+        // ==========================================
+        builder.Entity<Anotacao>(entity =>
+        {
+            entity.OwnsMany(a => a.Blocos, bloco =>
+            {
+                bloco.ToJson();
+                bloco.Property(b => b.Tipo).HasConversion<string>();
+            });
+        });
 
         // ==========================================
         // TABELA WORKER: JOBS
