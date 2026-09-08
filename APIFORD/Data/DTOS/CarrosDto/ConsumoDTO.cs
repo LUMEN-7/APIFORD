@@ -1,6 +1,8 @@
-﻿namespace APIFORD.Data.DTOS.CarrosDto;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace APIFORD.Data.DTOS.CarrosDto;
 
 public record ConsumoDTO(
-    PropriedadeScrapingDTO<decimal> Cidade,
-    PropriedadeScrapingDTO<decimal> Estrada
+    [property: Required] PropriedadeScrapingDTO<decimal> Cidade,
+    [property: Required] PropriedadeScrapingDTO<decimal> Estrada
 );

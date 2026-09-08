@@ -1,10 +1,12 @@
-﻿namespace APIFORD.Data.DTOS.CarrosDto;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace APIFORD.Data.DTOS.CarrosDto;
 
 public record EspecificacaoDTO(
-    PropriedadeScrapingDTO<int> Potencia,
-    PropriedadeScrapingDTO<int> Torque,
-    PropriedadeScrapingDTO<int> PotenciaRpm,
-    PropriedadeScrapingDTO<int> TorqueRpm,
-    PropriedadeScrapingDTO<string> Transmissao,
-    PropriedadeScrapingDTO<string> Tracao
+    [property: Required] PropriedadeScrapingDTO<int> Potencia,
+    [property: Required] PropriedadeScrapingDTO<int> Torque,
+    [property: Required] PropriedadeScrapingDTO<int> PotenciaRpm,
+    [property: Required] PropriedadeScrapingDTO<int> TorqueRpm,
+    [property: Required] PropriedadeScrapingDTO<string> Transmissao,
+    [property: Required] PropriedadeScrapingDTO<string> Tracao
 );

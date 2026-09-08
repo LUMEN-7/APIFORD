@@ -71,12 +71,12 @@ public class ExportacaoService
     /// </summary>
     /// <param name="itens">Lista de itens de exportação (linhagem e/ou carro específico) a serem verificados.</param>
     /// <returns>
-    /// Lista de <see cref="ConflitoCampoDTO"/>, um para cada campo com valores divergentes entre fontes,
+    /// Lista de <see cref="ConflitoCampoResponseDTO"/>, um para cada campo com valores divergentes entre fontes,
     /// contendo todas as fontes conflitantes encontradas para aquele campo.
     /// </returns>
-    public async Task<List<ConflitoCampoDTO>> ObterConflitosAsync(List<ItemExportacaoDTO> itens)
+    public async Task<List<ConflitoCampoResponseDTO>> ObterConflitosAsync(List<ItemExportacaoDTO> itens)
     {
-        var conflitos = new List<ConflitoCampoDTO>();
+        var conflitos = new List<ConflitoCampoResponseDTO>();
 
         foreach (var item in itens)
         {
@@ -90,7 +90,7 @@ public class ExportacaoService
             conflitos.AddRange(achatado.FontesDetalhadas
                 .GroupBy(f => f.Campo)
                 .Where(g => g.Select(f => f.Valor).Distinct().Count() > 1)
-                .Select(g => new ConflitoCampoDTO
+                .Select(g => new ConflitoCampoResponseDTO
                 {
                     LinhagemId = item.LinhagemId,
                     CampoCompleto = g.Key,

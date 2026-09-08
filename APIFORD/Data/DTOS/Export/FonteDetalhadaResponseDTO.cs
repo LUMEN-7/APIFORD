@@ -1,6 +1,6 @@
 ﻿namespace APIFORD.Data.DTOS.Export;
 
-public class FonteDetalhadaDTO
+public class FonteDetalhadaResponseDTO
 {
     public int LinhagemId { get; set; }
     public string Campo { get; set; } = "";

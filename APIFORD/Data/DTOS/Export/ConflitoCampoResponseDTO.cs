@@ -1,6 +1,6 @@
 ﻿namespace APIFORD.Data.DTOS.Export;
 
-public class ConflitoCampoDTO
+public class ConflitoCampoResponseDTO
 {
     public int LinhagemId { get; set; }
     public string CampoCompleto { get; set; } = string.Empty;

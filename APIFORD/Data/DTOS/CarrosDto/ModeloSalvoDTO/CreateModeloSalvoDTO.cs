@@ -1,5 +1,7 @@
-﻿namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 
 public record CreateModeloSalvoDTO(
-    int CarroId
-    );
+    [property: Range(1, int.MaxValue, ErrorMessage = "CarroId inválido.")] int CarroId
+);

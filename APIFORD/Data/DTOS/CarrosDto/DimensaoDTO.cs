@@ -1,8 +1,10 @@
-﻿namespace APIFORD.Data.DTOS.CarrosDto;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace APIFORD.Data.DTOS.CarrosDto;
 
 public record DimensaoDTO(
-    PropriedadeScrapingDTO<decimal> Comprimento,
-    PropriedadeScrapingDTO<decimal> Largura,
-    PropriedadeScrapingDTO<decimal> Altura,
-    PropriedadeScrapingDTO<decimal> EntreEixos
+    [property: Required] PropriedadeScrapingDTO<decimal> Comprimento,
+    [property: Required] PropriedadeScrapingDTO<decimal> Largura,
+    [property: Required] PropriedadeScrapingDTO<decimal> Altura,
+    [property: Required] PropriedadeScrapingDTO<decimal> EntreEixos
 );

@@ -30,8 +30,8 @@ public class ExportacaoController : ControllerBase
     /// <param name="itens">Lista de itens de exportação (linhagem e/ou carro específico) a serem verificados, via query string.</param>
     /// <returns>Um <see cref="ActionResult{T}"/> contendo <c>200 OK</c> com a lista de conflitos encontrados por campo.</returns>
     [HttpGet("conflitos")]
-    [ProducesResponseType(typeof(List<ConflitoCampoDTO>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<ConflitoCampoDTO>>> ObterConflitos([FromQuery] List<ItemExportacaoDTO> itens)
+    [ProducesResponseType(typeof(List<ConflitoCampoResponseDTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ConflitoCampoResponseDTO>>> ObterConflitos([FromQuery] List<ItemExportacaoDTO> itens)
     {
         return Ok(await _exportacaoService.ObterConflitosAsync(itens));
     }

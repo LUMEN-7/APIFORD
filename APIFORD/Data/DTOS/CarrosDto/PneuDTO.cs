@@ -1,8 +1,10 @@
-﻿namespace APIFORD.Data.DTOS.CarrosDto;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace APIFORD.Data.DTOS.CarrosDto;
 
 public record PneuDTO(
-    PropriedadeScrapingDTO<string> Tipo,
-    PropriedadeScrapingDTO<int> Aro,
-    PropriedadeScrapingDTO<int> Largura,
-    PropriedadeScrapingDTO<int> Perfil
+    [property: Required] PropriedadeScrapingDTO<string> Tipo,
+    [property: Required] PropriedadeScrapingDTO<int> Aro,
+    [property: Required] PropriedadeScrapingDTO<int> Largura,
+    [property: Required] PropriedadeScrapingDTO<int> Perfil
 );

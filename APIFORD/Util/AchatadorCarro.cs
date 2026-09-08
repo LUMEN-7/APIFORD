@@ -77,7 +77,7 @@ public static class AchatadorCarro
 
         foreach (var fonte in fontes)
         {
-            resultado.FontesDetalhadas.Add(new FonteDetalhadaDTO
+            resultado.FontesDetalhadas.Add(new FonteDetalhadaResponseDTO
             {
                 LinhagemId = linhagemId,
                 Campo = campoCompleto,

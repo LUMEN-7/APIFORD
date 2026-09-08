@@ -49,7 +49,7 @@ public class ExportadorCsvService : IExportadorFormatoService
         return sb.ToString();
     }
 
-    private string MontarCsvFontes(List<FonteDetalhadaDTO> fontes, string separador)
+    private string MontarCsvFontes(List<FonteDetalhadaResponseDTO> fontes, string separador)
     {
         var culturaDecimal = separador == ";" ? new CultureInfo("pt-BR") : CultureInfo.InvariantCulture;
 
