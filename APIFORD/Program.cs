@@ -46,44 +46,51 @@ builder.Services.AddDbContext<FordDbContext>(opts =>
         })
     );
 
+
 builder.Services
-    .AddIdentity<User, IdentityRole>()
+    .AddIdentity<User, IdentityRole>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+    })
     .AddEntityFrameworkStores<FordDbContext>()
     .AddDefaultTokenProviders();
 
 // ==========================================
 // 3. SEGURANÇA (AUTENTICAÇÃO E AUTORIZAÇÃO)
 // ==========================================
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//}).AddJwtBearer(options =>
-//{
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuerSigningKey = true,
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
-//        ValidateAudience = false,
-//        ValidateIssuer = false,
-//        ClockSkew = TimeSpan.Zero,
-//    };
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-// O handshake WebSocket do SignalR não manda header Authorization,
-// então o front precisa mandar o token assim: /hubs/notificacao?access_token=SEU_TOKEN
-    //options.Events = new JwtBearerEvents
-    //{
-    //    OnMessageReceived = context =>
-    //    {
-    //        var accessToken = context.Request.Query["access_token"];
-    //        if (!string.IsNullOrEmpty(accessToken) &&
-    //            context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
-    //        {
-    //            context.Token = accessToken;
-    //        }
-    //        return Task.CompletedTask;
-    //    }
-    //};
-//});
+}).AddJwtBearer(options =>
+    {
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
+        ValidateAudience = false,
+        ValidateIssuer = false,
+        ClockSkew = TimeSpan.Zero,
+    };
+
+    // O handshake WebSocket do SignalR não manda header Authorization,
+    // então o front precisa mandar o token assim: /hubs/notificacao?access_token=SEU_TOKEN
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            if (!string.IsNullOrEmpty(accessToken) &&
+                context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+
+ });
 
 // Politicas de autorização customizadas, caso queira usar. Exemplo de política de idade minima, onde o requisito é ter mais de 18 anos para acessar determinado recurso.
 //builder.Services.AddAuthorization(options =>
@@ -141,6 +148,9 @@ builder.Services.AddSwaggerGen(c =>
     //c.IncludeXmlComments(xmlPath);
 });
 
+
+
+
 builder.Services.AddDbContext<FordDbContext>(options =>
     options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention());
@@ -158,17 +168,28 @@ builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = Compre
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontEnd", policy =>
+        policy.WithOrigins("http://localhost:5173") // porta real do front em dev — ajusta se for outra
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 // ==========================================
 // PIPELINE DE REQUISIÇÃO (MIDDLEWARES)
 // ==========================================
 WebApplication app = builder.Build();
-app.MapHub<NotificacaoHub>("/hubs/notificacao");
+
+app.UseHttpsRedirection();
+app.UseCors("FrontEnd");
 app.UseResponseCompression();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+
+app.MapHub<NotificacaoHub>("/hubs/notificacao");
 
 app.UseAuthentication();
 app.UseAuthorization();

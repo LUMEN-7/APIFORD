@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Authorization\" />
+    <Folder Include="Services\CarServices\CarChildren\" />
   </ItemGroup>
 
   <ItemGroup>

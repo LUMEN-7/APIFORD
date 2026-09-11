@@ -9,7 +9,7 @@ public class ExportarRequestDTO : IValidatableObject
     [MinLength(1, ErrorMessage = "Informe ao menos um item para exportar.")]
     public List<ItemExportacaoDTO> Itens { get; set; } = new();
 
-    [RegularExpression("^(csv|xlsx|json)$", ErrorMessage = "Formato inválido. Use csv, xlsx ou json.")]
+    [RegularExpression("^(csv|xlsx|json|xml)$", ErrorMessage = "Formato inválido. Use csv, xlsx, json ou xml.")]
     public string Formato { get; set; } = "csv";
 
     [RegularExpression("^[,;]$", ErrorMessage = "Separador inválido. Use ',' ou ';'.")]

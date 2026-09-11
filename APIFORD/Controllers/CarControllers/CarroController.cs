@@ -24,7 +24,13 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
         _CarroService = CarroService;
     }
 
-    private string ObterUsuarioId() => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    protected string ObterUsuarioId()
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(id))
+            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+        return id;
+    }
 
     /// <summary>
     /// Retorna a versão mais recente de um veículo dentro de uma linhagem
@@ -33,7 +39,7 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
     /// <param name="linhagemId">Id da linhagem do veículo (agrupa todas as versões de um mesmo modelo/ano).</param>
     /// <response code="200">Versão mais recente encontrada.</response>
     /// <response code="404">Nenhuma versão encontrada para essa linhagem.</response>
-    [HttpGet("{linhagemId}")]
+    [HttpGet("recente/{linhagemId}")]
     [ProducesResponseType(typeof(ReadCarroDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReadCarroDTO>> ObterVersaoMaisRecente(int linhagemId)
@@ -74,4 +80,8 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
         var carroAtualizado = await _CarroService.EditarPropriedadesAdminAsync(id, alteracoes, ObterUsuarioId());
         return Ok(carroAtualizado);
     }
+
+    [HttpGet("listarPaginado")]
+    public async Task<ActionResult<List<ReadCarroDTO>>> Listar([FromQuery] int pagina = 1, [FromQuery] int tamanhoPagina = 20)
+    => Ok(await _CarroService.ListarMaisRecentesAsync(pagina, tamanhoPagina));
 }

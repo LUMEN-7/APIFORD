@@ -36,6 +36,31 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dtos, entities);
     }
 
+    public async Task<List<ReadCarroDTO>> ListarMaisRecentesAsync(int pagina, int tamanhoPagina)
+    {
+        // 1. Subquery simples: só agregação (Max), sem Includes — isso o EF traduz sem problema
+        var idsMaisRecentesQuery = DbSet
+            .GroupBy(c => c.LinhagemId)
+            .Select(g => g.Max(c => c.Id));
+
+        // 2. Query principal: já com Includes, filtrando pelos Ids resolvidos acima,
+        //    ordenando e paginando normalmente
+        var carros = await DbSet
+            .Where(c => idsMaisRecentesQuery.Contains(c.Id))
+            .OrderBy(c => c.Marca).ThenBy(c => c.Modelo)
+            .Skip((pagina - 1) * tamanhoPagina)
+            .Take(tamanhoPagina)
+            .ToListAsync();
+
+        var dtos = new List<ReadCarroDTO>();
+        foreach (var carro in carros)
+        {
+            var dto = Mapper.Map<ReadCarroDTO>(carro);
+            await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dto, carro);
+            dtos.Add(dto);
+        }
+        return dtos;
+    }
 
     public override async Task<ReadCarroDTO> CreateAsync(CreateCarroDTO dto)
     {

@@ -56,6 +56,13 @@ public class AnotacaoService
         return resultado;
     }
 
+    public async Task<ReadAnotacaoDTO> ObterPorIdAsync(int anotacaoId, string userId)
+    {
+        var anotacao = await _context.Anotacoes.FirstOrDefaultAsync(a => a.Id == anotacaoId && a.UserId == userId);
+        if (anotacao == null) throw new KeyNotFoundException("Anotação não encontrada.");
+        return await ResolverParaLeituraAsync(anotacao);
+    }
+
     /// <summary>
     /// Mapeia um conjunto de blocos para DTO e resolve, em lote (poucas idas ao banco em vez de uma por bloco),
     /// os cards de preview de carro (sempre a versão mais recente da linhagem) e de comparação salva.

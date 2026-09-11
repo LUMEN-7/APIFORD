@@ -10,6 +10,7 @@ public class LoginUserDTO
     [Required(ErrorMessage = "A senha é obrigatória.")]
     [DataType(DataType.Password)]
     public string Password { get; set; }
+
 }
 
 // Resposta — nunca é bindada a partir de input do usuário, então sem DataAnnotations.
@@ -18,6 +19,8 @@ public class LoginResponseDTO
     public bool RequerDoisFatores { get; set; }
     public string? TokenDesafio { get; set; }
     public string? AccessToken { get; set; }
+
+    public UsuarioResumoDTO? Usuario { get; set; }
 }
 
 public class GoogleLoginDTO

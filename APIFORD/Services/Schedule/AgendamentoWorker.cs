@@ -4,7 +4,7 @@ public class AgendamentoWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AgendamentoWorker> _logger;
-    private static readonly TimeSpan Intervalo = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan Intervalo = TimeSpan.FromMinutes(60);
 
     public AgendamentoWorker(IServiceScopeFactory scopeFactory, ILogger<AgendamentoWorker> logger)
     {

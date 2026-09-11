@@ -3,6 +3,7 @@ using System;
 using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class FordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260909020641_add-null-foto-user")]
+    partial class addnullfotouser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -503,9 +506,9 @@ namespace APIFORD.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("excluido");
 
-                    b.Property<string>("FotoPerfilUrl")
+                    b.Property<string>("Foto")
                         .HasColumnType("text")
-                        .HasColumnName("foto_perfil_url");
+                        .HasColumnName("foto");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
@@ -514,11 +517,6 @@ namespace APIFORD.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("lockout_end");
-
-                    b.Property<string>("NomeExibicao")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("nome_exibicao");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)

@@ -31,9 +31,12 @@ public class NotificacaoController : ControllerBase
     /// Obtém o Id do usuário autenticado a partir das claims da requisição atual.
     /// </summary>
     /// <returns>O Id do usuário autenticado, ou uma string vazia caso a claim não esteja presente.</returns>
-    private string ObterUsuarioId()
+    protected string ObterUsuarioId()
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(id))
+            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+        return id;
     }
 
     /// <summary>

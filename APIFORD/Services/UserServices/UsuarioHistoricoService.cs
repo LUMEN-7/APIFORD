@@ -33,7 +33,7 @@ public class UsuarioHistoricoService
     // =======================================================================
     // GERENCIAMENTO DE MODELOS (FAVORITOS)
     // =======================================================================
-    
+
     /// <summary>
     /// Favorita (salva) um carro para o usuário informado, impedindo duplicidade caso o
     /// mesmo carro já tenha sido favoritado anteriormente por ele.
@@ -44,18 +44,18 @@ public class UsuarioHistoricoService
     /// <exception cref="BadRequestException">Lançada quando o carro já havia sido favoritado por esse usuário.</exception>
     public async Task<bool> SalvarModeloAsync(string usuarioId, CreateModeloSalvoDTO dto)
     {
-        var jaExiste = await _context.ModeloSalvos.AnyAsync(m => m.UserId == usuarioId && m.CarroId == dto.CarroId);
+        var carroAtual = await _context.Carros
+            .Where(c => c.LinhagemId == dto.LinhagemId)
+            .OrderByDescending(c => c.Id)
+            .FirstOrDefaultAsync();
+        if (carroAtual == null) return false;
 
-        if (jaExiste) throw new BadRequestException("Modelo já salvo.");
+        var jaExiste = await _context.ModeloSalvos
+            .Include(m => m.Carro)
+            .AnyAsync(m => m.UserId == usuarioId && m.Carro.LinhagemId == dto.LinhagemId);
+        if (jaExiste) return false;
 
-        var novoModelo = new ModeloSalvo
-        {
-            UserId = usuarioId,
-            CarroId = dto.CarroId,
-            DataSalvo = DateTime.UtcNow
-        };
-
-        _context.ModeloSalvos.Add(novoModelo);
+        _context.ModeloSalvos.Add(new ModeloSalvo { UserId = usuarioId, CarroId = carroAtual.Id, DataSalvo = DateTime.UtcNow });
         await _context.SaveChangesAsync();
         return true;
     }
@@ -67,12 +67,12 @@ public class UsuarioHistoricoService
     /// <param name="carroId">Id do carro a ser removido dos favoritos.</param>
     /// <returns><c>true</c> quando o modelo é removido com sucesso.</returns>
     /// <exception cref="NotFoundException">Lançada quando o carro não está favoritado por esse usuário.</exception>
-    public async Task<bool> RemoverModeloAsync(string usuarioId, int carroId)
+    public async Task<bool> RemoverModeloAsync(string usuarioId, int linhagemId)
     {
         var modelo = await _context.ModeloSalvos
-            .FirstOrDefaultAsync(m => m.UserId == usuarioId && m.CarroId == carroId);
-
-        if (modelo == null) throw new NotFoundException("Modelo não encontrado.");
+            .Include(m => m.Carro)
+            .FirstOrDefaultAsync(m => m.UserId == usuarioId && m.Carro.LinhagemId == linhagemId);
+        if (modelo == null) return false;
 
         _context.ModeloSalvos.Remove(modelo);
         await _context.SaveChangesAsync();
@@ -86,13 +86,19 @@ public class UsuarioHistoricoService
     /// <returns>Lista de <see cref="ReadCarroDTO"/> representando os carros favoritados pelo usuário.</returns>
     public async Task<List<ReadCarroDTO>> ListarModeloSalvosAsync(string usuarioId)
     {
-        var carros = await _context.ModeloSalvos
+        var linhagens = await _context.ModeloSalvos
             .Where(m => m.UserId == usuarioId)
-            .Include(m => m.Carro) // Traz o carro do banco
-            .Select(m => m.Carro)  // Extrai apenas a entidade Carro
+            .Include(m => m.Carro)
+            .Select(m => m.Carro.LinhagemId)
             .ToListAsync();
 
-        return _mapper.Map<List<ReadCarroDTO>>(carros);
+        var carrosAtuais = await _context.Carros
+            .Where(c => linhagens.Contains(c.LinhagemId))
+            .GroupBy(c => c.LinhagemId)
+            .Select(g => g.OrderByDescending(c => c.Id).First())
+            .ToListAsync();
+
+        return _mapper.Map<List<ReadCarroDTO>>(carrosAtuais);
     }
 
     // =======================================================================

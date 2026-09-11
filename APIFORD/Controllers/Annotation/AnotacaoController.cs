@@ -13,13 +13,19 @@ namespace APIFORD.Controllers.Annotation;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-//[Authorize]
+[Authorize]
 public class AnotacaoController : ControllerBase
 {
     private readonly AnotacaoService _anotacaoService;
     public AnotacaoController(AnotacaoService anotacaoService) => _anotacaoService = anotacaoService;
 
-    private string ObterUsuarioId() => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    protected string ObterUsuarioId()
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(id))
+            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+        return id;
+    }
 
     /// <summary>
     /// Cria uma nova anotação vazia (sem blocos) para o usuário logado.
@@ -28,7 +34,7 @@ public class AnotacaoController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ReadAnotacaoDTO), StatusCodes.Status200OK)]
     public async Task<ActionResult<ReadAnotacaoDTO>> Criar([FromBody] CriarAnotacaoDTO dto)
-        => Ok(await _anotacaoService.CriarAsync(ObterUsuarioId(), dto));
+         => Ok(await _anotacaoService.CriarAsync(ObterUsuarioId(), dto));
 
     /// <summary>
     /// Lista todas as anotações do usuário logado, da mais recentemente atualizada para a mais antiga.
@@ -37,6 +43,10 @@ public class AnotacaoController : ControllerBase
     [ProducesResponseType(typeof(List<ReadAnotacaoDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ReadAnotacaoDTO>>> ListarMinhas()
         => Ok(await _anotacaoService.ListarPorUsuarioAsync(ObterUsuarioId()));
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ReadAnotacaoDTO>> ObterPorId(int id)
+    => Ok(await _anotacaoService.ObterPorIdAsync(id, ObterUsuarioId()));
 
     /// <summary>
     /// Insere um novo bloco de conteúdo em uma anotação, numa posição específica (ou no final, se omitida).

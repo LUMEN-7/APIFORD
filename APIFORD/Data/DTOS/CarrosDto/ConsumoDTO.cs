@@ -3,6 +3,6 @@
 namespace APIFORD.Data.DTOS.CarrosDto;
 
 public record ConsumoDTO(
-    [property: Required] PropriedadeScrapingDTO<decimal> Cidade,
-    [property: Required] PropriedadeScrapingDTO<decimal> Estrada
+    [Required] PropriedadeScrapingDTO<decimal> Cidade,
+    [Required] PropriedadeScrapingDTO<decimal> Estrada
 );

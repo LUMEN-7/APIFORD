@@ -9,9 +9,10 @@ public class UserPerfil : Profile
 {
     public UserPerfil()
     {
-        CreateMap<CreateUserDTO, User>();
+        
         CreateMap<User, ShowUserDTO>();
-        CreateMap<UpdateUserDTO, User>();
+        CreateMap<UpdateUserDTO, User>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<User, UpdateUserDTO>();
 
         CreateMap<ComparacaoSalva, ReadComparacaoSalvaDTO>();

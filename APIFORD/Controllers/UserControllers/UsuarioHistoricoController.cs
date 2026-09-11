@@ -1,6 +1,7 @@
 ﻿using APIFORD.Data;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Comparison;
+using APIFORD.Middleware;
 using APIFORD.Model;
 using APIFORD.Services.UserServices;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ namespace APIFORD.Controllers.UserControllers;
 /// </summary>
 [ApiController]
 [Route("user")]
-[Authorize] // Garante que apenas usuários logados acessem essas rotas
+//[Authorize] // Garante que apenas usuários logados acessem essas rotas
 public class UsuarioHistoricoController : ControllerBase
 {
     private readonly UsuarioHistoricoService _service;
@@ -34,9 +35,12 @@ public class UsuarioHistoricoController : ControllerBase
     /// Obtém o Id do usuário autenticado a partir das claims do token JWT da requisição atual.
     /// </summary>
     /// <returns>O Id do usuário autenticado, ou uma string vazia caso a claim não esteja presente.</returns>
-    private string ObterUsuarioId()
+    protected string ObterUsuarioId()
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(id))
+            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+        return id;
     }
 
     // =======================================================================
@@ -68,6 +72,7 @@ public class UsuarioHistoricoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SalvarModelo([FromBody] CreateModeloSalvoDTO dto)
     {
+        var userId = ObterUsuarioId();
         var sucesso = await _service.SalvarModeloAsync(ObterUsuarioId(), dto);
         return Ok("Modelo favoritado com sucesso.");
     }
@@ -75,16 +80,16 @@ public class UsuarioHistoricoController : ControllerBase
     /// <summary>
     /// Remove um modelo de carro previamente favoritado pelo usuário autenticado.
     /// </summary>
-    /// <param name="carroId">Id do carro a ser removido dos favoritos.</param>
+    /// <param name="linhagemId">Id da linhagem do carro a ser removido dos favoritos.</param>
     /// <returns>Um <see cref="IActionResult"/> contendo <c>204 No Content</c> após a remoção.</returns>
     /// <response code="204">Modelo removido dos favoritos com sucesso.</response>
     /// <response code="404">Modelo favoritado não encontrado para o usuário informado.</response>
-    [HttpDelete("modelos/{carroId}")]
+    [HttpDelete("modelos/{linhagemId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)] // Padrão REST 204 para deleção com sucesso
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RemoverModelo(int carroId)
+    public async Task<IActionResult> RemoverModelo(int linhagemId)
     {
-        var sucesso = await _service.RemoverModeloAsync(ObterUsuarioId(), carroId);
+        var sucesso = await _service.RemoverModeloAsync(ObterUsuarioId(), linhagemId);
         return NoContent();
     }
 

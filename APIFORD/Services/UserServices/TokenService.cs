@@ -25,13 +25,6 @@ public class TokenService
             new Claim("loginTimestamp", DateTime.UtcNow.ToString())
         };
 
-
-        //var chave = new SymmetricSecurityKey
-        //    (Encoding.UTF8.GetBytes
-        //    ("skdjhjasdhfodahas")
-        //    );//literalmente uma das piores decisoes de segurança, pois esta literalmente no codigo a cave de encoding
-        //    a chave para esse projeto é outra :)
-
         var chave = new SymmetricSecurityKey
             (Encoding.UTF8.GetBytes
             (_configuration["SymmetricSecurityKey"])
@@ -39,12 +32,13 @@ public class TokenService
 
         var signingCredentials = new SigningCredentials(chave, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken
-            (
-            expires: DateTime.Now.AddMinutes(10),
+        var horasExpiracao = _configuration.GetValue<double>("TokenExpiracaoHoras", 12);
+
+        var token = new JwtSecurityToken(
+            expires: DateTime.Now.AddHours(horasExpiracao), // era AddMinutes(10)
             claims: claims,
             signingCredentials: signingCredentials
-            );
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

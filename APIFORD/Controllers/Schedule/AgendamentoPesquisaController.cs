@@ -31,7 +31,13 @@ public class AgendamentoPesquisaController : ControllerBase
     /// Obtém o Id do usuário autenticado a partir das claims da requisição atual.
     /// </summary>
     /// <returns>O Id do usuário autenticado, ou uma string vazia caso a claim não esteja presente.</returns>
-    private string ObterUsuarioId() => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    protected string ObterUsuarioId()
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(id))
+            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+        return id;
+    }
 
     /// <summary>
     /// Cria um novo agendamento de pesquisa para o usuário autenticado.

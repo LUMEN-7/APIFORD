@@ -1,6 +1,6 @@
 ﻿namespace APIFORD.Model.Annotation;
 
-public enum TipoBloco { Paragrafo, Titulo, Subtitulo, ItemLista, CardCarro, CardComparacao }
+public enum TipoBloco { Paragrafo, Titulo, Subtitulo, ItemLista, CardCarro, CardComparacao, Imagem, Divisor }
 
 
 public class Anotacao
