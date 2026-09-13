@@ -12,6 +12,8 @@ public class NotificacaoEvento
     public string Mensagem { get; set; } = string.Empty;
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
     public bool Excluido { get; set; } = false;
+    // Model/NotificacaoEvento.cs — adiciona a property
+    public int? LinhagemIdReferenciado { get; set; }
 
     // Navegação
     public ICollection<NotificacaoUsuario> Destinatarios { get; set; } = new List<NotificacaoUsuario>();

@@ -16,7 +16,9 @@ public class NotificationPerfil : Profile
                    .ForMember(dest => dest.Titulo, opt => opt.MapFrom(src => src.Evento.Titulo))
                    .ForMember(dest => dest.Subtitulo, opt => opt.MapFrom(src => src.Evento.Subtitulo))
                    .ForMember(dest => dest.Mensagem, opt => opt.MapFrom(src => src.Evento.Mensagem))
+                   .ForMember(dest => dest.LinhagemIdReferenciado, opt => opt.MapFrom(src => src.Evento.LinhagemIdReferenciado))
                    .ForMember(dest => dest.DataCriacao, opt => opt.MapFrom(src => src.Evento.DataCriacao));
+        // NotificacaoProfile.cs — adiciona ao CreateMap<NotificacaoUsuario, ReadNotificationDTO> já existente
 
         CreateMap<CreateNotificationDTO, NotificacaoEvento>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

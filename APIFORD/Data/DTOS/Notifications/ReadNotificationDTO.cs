@@ -10,6 +10,8 @@ public class ReadNotificationDTO
     public NotificationTypes Tipo { get; set; }
     public string Titulo { get; set; }
     public string? Subtitulo { get; set; }
+    // Model/NotificacaoEvento.cs — adiciona a property
+    public int? LinhagemIdReferenciado { get; set; }
     public object Mensagem { get; set; }
     public bool Lido { get; set; }
     public bool Excluido { get; set; }

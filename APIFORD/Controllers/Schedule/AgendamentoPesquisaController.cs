@@ -1,4 +1,5 @@
 ﻿using APIFORD.Data.DTOS.Schedule;
+using APIFORD.Middleware;
 using APIFORD.Model.Schedule;
 using APIFORD.Model.User;
 using APIFORD.Services.Schedule;
@@ -35,7 +36,7 @@ public class AgendamentoPesquisaController : ControllerBase
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(id))
-            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
 

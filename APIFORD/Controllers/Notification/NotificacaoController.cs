@@ -1,4 +1,5 @@
 ﻿using APIFORD.Data.DTOS.Notifications;
+using APIFORD.Middleware;
 using APIFORD.Services.NotificationService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,7 @@ namespace APIFORD.Controllers.Notification;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-//[Authorize] // reativado — antes estava comentado
+[Authorize] // reativado — antes estava comentado
 public class NotificacaoController : ControllerBase
 {
     private readonly NotificacaoService _notificacaoService;
@@ -35,7 +36,7 @@ public class NotificacaoController : ControllerBase
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(id))
-            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
 
@@ -50,6 +51,12 @@ public class NotificacaoController : ControllerBase
         var result = await _notificacaoService.ListarNotificacoesDoUsuarioAsync(ObterUsuarioId());
         return Ok(result);
     }
+
+    [HttpGet("Ativas")]
+    public async Task<IActionResult> ObterQuantasAtivas()
+         => Ok(await _notificacaoService.ObterQuantasAtivas(ObterUsuarioId()));
+    
+
 
     /// <summary>
     /// Marca uma notificação específica do usuário autenticado como lida.
@@ -90,5 +97,19 @@ public class NotificacaoController : ControllerBase
     {
         var result = await _notificacaoService.CriarBroadcastAsync(dto);
         return Ok(result);
+    }
+
+    // NotificacaoController.cs
+    /// <summary>
+    /// Remove uma notificação da caixa de entrada do usuário autenticado.
+    /// </summary>
+    /// <param name="id">Id da notificação (do NotificacaoUsuario, não do evento).</param>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Excluir(int id)
+    {
+        await _notificacaoService.ExcluirAsync(id, ObterUsuarioId());
+        return NoContent();
     }
 }

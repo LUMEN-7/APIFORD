@@ -10,3 +10,4 @@ public class ReadComparacaoSalvaDTO
     // O payload que o React vai usar para refazer a pesquisa
     public string RequestPayload { get; set; } = string.Empty;
 }
+

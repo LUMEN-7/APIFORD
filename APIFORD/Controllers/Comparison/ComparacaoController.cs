@@ -1,7 +1,10 @@
-﻿using APIFORD.Data.DTOS.Comparison.Bulk;
+﻿using APIFORD.Data.DTOS.Comparison;
+using APIFORD.Data.DTOS.Comparison.Bulk;
 using APIFORD.Data.DTOS.Comparison.Direct;
+using APIFORD.Middleware;
 using APIFORD.Services.Comparison;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace APIFORD.Controllers.Comparison;
 
@@ -24,6 +27,7 @@ public class ComparacaoController : ControllerBase
     {
         _comparacaoService = comparacaoService;
     }
+
 
     /// <summary>
     /// Gera uma análise comparativa (BI de mercado) entre um carro base e os demais carros
@@ -71,4 +75,7 @@ public class ComparacaoController : ControllerBase
         var resultado = await _comparacaoService.GerarComparacaoDiretaAsync(dto);
         return Ok(resultado);
     }
+
+
+
 }

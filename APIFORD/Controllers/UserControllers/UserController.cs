@@ -1,6 +1,7 @@
 ﻿using APIFORD.Data.DTOS.CarrosDto.SavedModel;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.User;
+using APIFORD.Middleware;
 using APIFORD.Model;
 using APIFORD.Services.UserServices;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +30,7 @@ public class UserController : ControllerBase
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(id))
-            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
 

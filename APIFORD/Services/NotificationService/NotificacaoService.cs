@@ -1,6 +1,7 @@
 ﻿using APIFORD.Data;
 using APIFORD.Data.DTOS.Notifications;
 using APIFORD.Hubs;
+using APIFORD.Middleware;
 using APIFORD.Model;
 using APIFORD.Model.Notification;
 using APIFORD.Util;
@@ -58,6 +59,7 @@ public class NotificacaoService
             Titulo = dto.Titulo,
             Subtitulo = dto.Subtitulo,
             Mensagem = dto.Mensagem,
+            LinhagemIdReferenciado = dto.LinhagemId,
             DataCriacao = DateTime.UtcNow,
             Destinatarios = destinatarios.Select(userId => new NotificacaoUsuario
             {
@@ -238,5 +240,29 @@ public class NotificacaoService
         });
 
         await Task.WhenAll(envios); // antes era foreach+await sequencial; agora dispara em paralelo
+    }
+    public async Task ExcluirAsync(int id, string usuarioId)
+    {
+        var notificacao = await _context.NotificacoesUsuarios
+            .FirstOrDefaultAsync(nu => nu.Id == id && nu.UserId == usuarioId);
+
+        if (notificacao == null) throw new NotFoundException("Notificação não encontrada.");
+
+        _context.NotificacoesUsuarios.Remove(notificacao);
+        await _context.SaveChangesAsync();
+    }
+
+    internal async Task<object?> ObterQuantasAtivas(string usuarioId)
+    {
+         try
+         {
+             var alertasAtivos = await _context.NotificacoesUsuarios
+                 .CountAsync(nu => nu.UserId == usuarioId && !nu.Lida);
+             return alertasAtivos;
+         }
+         catch (Exception)
+         {
+             throw new InternalServerErrorException("Erro ao obter quantidade de alertas ativos.");
+         }
     }
 }

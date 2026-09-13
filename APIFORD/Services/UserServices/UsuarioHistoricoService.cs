@@ -162,4 +162,47 @@ public class UsuarioHistoricoService
 
         return _mapper.Map<List<ReadComparacaoSalvaDTO>>(historico);
     }
+
+    public async Task<int> ObterQuantidadeDeComparacoesSalvasAsync(string usuarioId)
+    {
+        try
+        {
+            var comparacoesSalvas = await _context.ComparacoesSalvas.CountAsync(c => c.UserId == usuarioId);
+            return comparacoesSalvas;
+        }
+        catch (Exception)
+        {
+            throw new InternalServerErrorException("Erro ao obter quantidade de comparações salvas.");
+        }
+    }
+
+
+    public async Task<int> ObterQuantidadeDeComparacoesSemanaAsync(string usuarioId)
+    {
+        try
+        {
+            var umaSemanaAtras = DateTime.UtcNow.AddDays(-7);
+            var analisesEstaSemana = await _context.ComparacoesSalvas
+            .CountAsync(c => c.UserId == usuarioId && c.DataSalvamento >= umaSemanaAtras);
+
+            return analisesEstaSemana;
+        }
+        catch (Exception)
+        {
+            throw new InternalServerErrorException("Erro ao obter quantidade de comparações salvas.");
+        }
+    }
+
+    public async Task<object?> ObterQuantidadeDeModelosSalvosAsync(string usuarioId)
+    {
+        try
+        {
+            var modelosMonitorados = await _context.ModeloSalvos.CountAsync(m => m.UserId == usuarioId);
+            return modelosMonitorados;
+        }
+        catch (Exception)
+        {
+            throw new InternalServerErrorException("Erro ao obter quantidade de modelos salvos.");
+        }
+    }
 }

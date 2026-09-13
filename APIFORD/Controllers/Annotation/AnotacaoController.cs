@@ -1,4 +1,5 @@
 ﻿using APIFORD.Data.DTOS.Annotations;
+using APIFORD.Middleware;
 using APIFORD.Model.User;
 using APIFORD.Services.Annotation;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ public class AnotacaoController : ControllerBase
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(id))
-            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
 
@@ -96,6 +97,13 @@ public class AnotacaoController : ControllerBase
     public async Task<IActionResult> AtualizarTextoBloco(int id, string blocoId, [FromBody] AtualizarTextoBlocoDTO dto)
     {
         await _anotacaoService.AtualizarTextoBlocoAsync(id, ObterUsuarioId(), blocoId, dto.Texto);
+        return NoContent();
+    }
+
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> AtualizarTitulo(int id, [FromBody] AtualizarTituloAnotacaoDTO dto)
+    {
+        await _anotacaoService.AtualizarTituloAsync(id, ObterUsuarioId(), dto);
         return NoContent();
     }
 

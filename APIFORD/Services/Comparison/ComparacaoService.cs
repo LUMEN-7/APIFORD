@@ -166,6 +166,7 @@ public class ComparacaoService
         return response;
     }
 
+
     // =======================================================================
     // MOTORES DE ANÁLISE GENÉRICA (NÚMEROS, TEXTOS E LISTAS)
     // =======================================================================
@@ -453,4 +454,6 @@ public class ComparacaoService
 
         return Expression.Lambda<Func<Carro, bool>>(anyFontes, carroParam);
     }
+
+
 }

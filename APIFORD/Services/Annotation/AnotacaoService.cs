@@ -190,6 +190,16 @@ public class AnotacaoService
         return await ResolverParaLeituraAsync(anotacao);
     }
 
+    public async Task AtualizarTituloAsync(int anotacaoId, string userId, AtualizarTituloAnotacaoDTO dto)
+    {
+        var anotacao = await _context.Anotacoes.FirstOrDefaultAsync(a => a.Id == anotacaoId && a.UserId == userId);
+        if (anotacao == null) throw new KeyNotFoundException("Anotação não encontrada.");
+
+        anotacao.Titulo = dto.Titulo;
+        anotacao.AtualizadoEm = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+    }
+
     /// <summary>
     /// Atualiza apenas o texto de um bloco, sem afetar posição ou referência.
     /// </summary>

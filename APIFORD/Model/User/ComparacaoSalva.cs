@@ -10,7 +10,6 @@ public class ComparacaoSalva
     public string Tipo { get; set; } = string.Empty; // "Direta" ou "Grupo"
     public DateTime DataSalvamento { get; set; } = DateTime.UtcNow;
 
-    
     [Column(TypeName = "jsonb")]
     public string RequestPayload { get; set; } = string.Empty;
 }

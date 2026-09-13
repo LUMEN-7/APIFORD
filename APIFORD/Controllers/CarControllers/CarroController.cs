@@ -1,5 +1,6 @@
 ﻿using APIFORD.Data.DTOS.CarrosDto;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
+using APIFORD.Middleware;
 using APIFORD.Services.CarroServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.JSInterop.Implementation;
@@ -28,7 +29,7 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(id))
-            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
 

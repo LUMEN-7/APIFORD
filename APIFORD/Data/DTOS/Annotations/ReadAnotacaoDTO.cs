@@ -7,4 +7,6 @@ public class ReadAnotacaoDTO
     public string? Subtitulo { get; set; }
     public List<ReadBlocoDTO> Blocos { get; set; } = new();
     public DateTime AtualizadoEm { get; set; }
+
+    public DateTime CriadoEm { get; set; }
 }

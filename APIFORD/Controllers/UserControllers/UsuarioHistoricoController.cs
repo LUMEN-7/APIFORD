@@ -3,6 +3,7 @@ using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Comparison;
 using APIFORD.Middleware;
 using APIFORD.Model;
+using APIFORD.Services.Comparison;
 using APIFORD.Services.UserServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +40,7 @@ public class UsuarioHistoricoController : ControllerBase
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(id))
-            throw new UnauthorizedAccessException("Não foi possível identificar o usuário autenticado.");
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
 
@@ -74,8 +75,13 @@ public class UsuarioHistoricoController : ControllerBase
     {
         var userId = ObterUsuarioId();
         var sucesso = await _service.SalvarModeloAsync(ObterUsuarioId(), dto);
-        return Ok("Modelo favoritado com sucesso.");
+        return Created("",sucesso);
     }
+
+    [HttpGet("modelos/quantidade-salvos")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ObterQuantidadeDeModelosSalvos()
+        => Ok(await _service.ObterQuantidadeDeModelosSalvosAsync(ObterUsuarioId()));
 
     /// <summary>
     /// Remove um modelo de carro previamente favoritado pelo usuário autenticado.
@@ -139,4 +145,14 @@ public class UsuarioHistoricoController : ControllerBase
         var sucesso = await _service.RemoverComparacaoAsync(ObterUsuarioId(), comparacaoId);
         return NoContent();
     }
+
+    [HttpGet("comparacoes/quantidade-salvas")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ObterQuantidadeDeComparacoesSalvas()
+    => Ok(await _service.ObterQuantidadeDeComparacoesSalvasAsync(ObterUsuarioId()));
+
+    [HttpGet("comparacoes/quantidade-semana")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ObterQuantidadeDeComparacoesSemana()
+        => Ok(await _service.ObterQuantidadeDeComparacoesSemanaAsync(ObterUsuarioId()));
 }
