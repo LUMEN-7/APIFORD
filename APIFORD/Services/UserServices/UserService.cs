@@ -168,14 +168,19 @@ public class UserService
 
         if (user == null)
         {
+            var nomeExibicao = !string.IsNullOrWhiteSpace(payload.Name)
+            ? payload.Name
+            : payload.Email.Split('@')[0]; // fallback: prefixo do e-mail quando o Google não manda o nome
+
             user = new User
             {
                 UserName = payload.Email,
                 Email = payload.Email,
                 EmailConfirmed = true,
-                NomeExibicao = payload.Name,
-                FotoPerfilUrl = payload.Picture
+                NomeExibicao = nomeExibicao,
+                FotoPerfilUrl = payload.Picture, // pode continuar null — não tem a mesma restrição NOT NULL no banco
             };
+            
             var criar = await _userManager.CreateAsync(user); // sem senha — essa conta só loga via Google
 
             LancarSeIdentityFalhou(criar);

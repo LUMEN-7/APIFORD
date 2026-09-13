@@ -13,6 +13,9 @@ public class CriarAgendamentoDTO : IValidatableObject
     [Required(ErrorMessage = "O modelo é obrigatório.")]
     public string Modelo { get; set; } = string.Empty;
 
+    public int? LinhagemId { get; set; }
+    public string? Notas { get; set; }
+
     [Range(1900, 2100, ErrorMessage = "Ano inválido.")]
     public int? Ano { get; set; }
 

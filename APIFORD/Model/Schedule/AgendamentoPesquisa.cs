@@ -10,6 +10,8 @@ public class AgendamentoPesquisa
     public string Marca { get; set; }
     public string Modelo { get; set; }
     public int? Ano { get; set; }
+    public string? Notas { get; set; }
+    public int? LinhagemId { get; set; }
 
     public DateTime ProximaExecucao { get; set; }
     public RecorrenciaAgendamento Recorrencia { get; set; } = RecorrenciaAgendamento.Unica;

@@ -16,7 +16,7 @@ namespace APIFORD.Controllers.Schedule;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-//[Authorize]
+[Authorize]
 public class AgendamentoPesquisaController : ControllerBase
 {
     private readonly AgendamentoPesquisaService _agendamentoService;
@@ -58,6 +58,14 @@ public class AgendamentoPesquisaController : ControllerBase
     [ProducesResponseType(typeof(List<AgendamentoPesquisaDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AgendamentoPesquisa>>> ListarMeus()
         => Ok(await _agendamentoService.ListarPorUsuarioAsync(ObterUsuarioId()));
+
+    [HttpPost("{id}/executar-agora")]
+    public async Task<IActionResult> ExecutarAgora(int id)
+    => Ok(new { job_id = await _agendamentoService.ExecutarAgoraAsync(id, ObterUsuarioId()) });
+
+    [HttpPatch("{id}/alternar-status")]
+    public async Task<ActionResult<AgendamentoPesquisaDTO>> AlternarStatus(int id)
+        => Ok(await _agendamentoService.AlternarStatusAsync(id, ObterUsuarioId()));
 
     /// <summary>
     /// Cancela um agendamento de pesquisa específico do usuário autenticado.

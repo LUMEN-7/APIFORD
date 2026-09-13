@@ -48,6 +48,8 @@ public class AgendamentoPesquisaService
             Marca = dto.Marca,
             Modelo = dto.Modelo,
             Ano = dto.Ano,
+            LinhagemId = dto.LinhagemId,
+            Notas = dto.Notas,
             ProximaExecucao = dto.DataAgendada,
             Recorrencia = dto.Recorrencia
         };
@@ -56,6 +58,7 @@ public class AgendamentoPesquisaService
         await _context.SaveChangesAsync();
         return _mapper.Map<AgendamentoPesquisaDTO>(agendamento);
     }
+
 
     /// <summary>
     /// Lista todos os agendamentos de pesquisa não cancelados de um usuário, ordenados
@@ -71,6 +74,28 @@ public class AgendamentoPesquisaService
             .ToListAsync();
         return _mapper.Map<List<AgendamentoPesquisaDTO>>(agendamentos);
     }
+
+    public async Task<Guid> ExecutarAgoraAsync(int agendamentoId, string userId)
+    {
+        var agendamento = await _context.AgendamentosPesquisa.FirstOrDefaultAsync(a => a.Id == agendamentoId && a.UserId == userId);
+        if (agendamento == null) throw new KeyNotFoundException("Agendamento não encontrado.");
+
+        var jobId = await _pesquisaService.BuscarOuIniciarAsync(new BuscaDTO { Brand = agendamento.Marca, Model = agendamento.Modelo, Year = agendamento.Ano });
+        agendamento.UltimaExecucao = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return jobId;
+    }
+
+    public async Task<AgendamentoPesquisaDTO> AlternarStatusAsync(int agendamentoId, string userId)
+    {
+        var agendamento = await _context.AgendamentosPesquisa.FirstOrDefaultAsync(a => a.Id == agendamentoId && a.UserId == userId);
+        if (agendamento == null) throw new KeyNotFoundException("Agendamento não encontrado.");
+
+        agendamento.Status = agendamento.Status == StatusAgendamento.Ativo ? StatusAgendamento.Pausado : StatusAgendamento.Ativo;
+        await _context.SaveChangesAsync();
+        return _mapper.Map<AgendamentoPesquisaDTO>(agendamento);
+    }
+
 
     /// <summary>
     /// Cancela um agendamento de pesquisa específico, alterando seu status para
@@ -120,9 +145,12 @@ public class AgendamentoPesquisaService
             }
             else
             {
-                agendamento.ProximaExecucao = agendamento.Recorrencia == RecorrenciaAgendamento.Semanal
-                    ? agora.AddDays(7)
-                    : agora.AddMonths(1);
+                agendamento.ProximaExecucao = agendamento.Recorrencia switch
+                {
+                    RecorrenciaAgendamento.Diaria => agora.AddDays(1),
+                    RecorrenciaAgendamento.Semanal => agora.AddDays(7),
+                    _ => agora.AddMonths(1)
+                };
             }
         }
 
