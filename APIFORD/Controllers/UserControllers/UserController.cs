@@ -219,6 +219,22 @@ public class UserController : ControllerBase
         return Ok("Usuário atualizado com sucesso");
     }
 
+    
+    [HttpPost("foto-perfil")]
+    public async Task<IActionResult> AtualizarFotoPerfil(IFormFile arquivo)
+    {
+        var url = await _userService.AtualizarFotoPerfilAsync(ObterUsuarioId(), arquivo, arquivo.FileName, arquivo.ContentType);
+        return Ok(new { fotoPerfilUrl = url });
+    }
+
+    
+    [HttpDelete("foto-perfil")]
+    public async Task<IActionResult> RemoverFotoPerfil()
+    {
+        await _userService.RemoverFotoPerfilAsync(ObterUsuarioId());
+        return NoContent();
+    }
+
 
 
     //===============

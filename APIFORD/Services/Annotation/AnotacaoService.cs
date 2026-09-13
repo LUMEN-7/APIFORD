@@ -18,11 +18,13 @@ public class AnotacaoService
 {
     private readonly FordDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IArmazenamentoService _armazenamentoService; // novo
 
-    public AnotacaoService(FordDbContext context, IMapper mapper)
+    public AnotacaoService(FordDbContext context, IMapper mapper, IArmazenamentoService armazenamentoService)
     {
         _context = context;
         _mapper = mapper;
+        _armazenamentoService = armazenamentoService;
     }
 
     /// <summary>
@@ -138,6 +140,27 @@ public class AnotacaoService
     }
 
     /// <summary>
+    /// Envia uma imagem pro armazenamento (MinIO) e retorna a URL final, pronta pra ser usada
+    /// como Texto de um bloco do tipo Imagem.
+    /// </summary>
+    /// <param name="arquivo">Arquivo de imagem (JPEG, PNG ou WebP, até 5MB).</param>
+    /// <exception cref="BadRequestException">Arquivo ausente, grande demais, ou formato não suportado.</exception>
+    public async Task<string> SalvarImagemAsync(IFormFile arquivo)
+    {
+        if (arquivo == null || arquivo.Length == 0)
+            throw new BadRequestException("Nenhum arquivo enviado.");
+
+        if (arquivo.Length > 5 * 1024 * 1024)
+            throw new BadRequestException("Imagem muito grande. Máximo de 5MB.");
+
+        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
+        if (!tiposPermitidos.Contains(arquivo.ContentType))
+            throw new BadRequestException("Formato não suportado. Use JPEG, PNG ou WebP.");
+
+        return await _armazenamentoService.SalvarArquivoAsync(arquivo.OpenReadStream(), arquivo.FileName, arquivo.ContentType);
+    }
+
+    /// <summary>
     /// Remove um bloco de uma anotação.
     /// </summary>
     /// <param name="anotacaoId">Id da anotação.</param>
@@ -151,6 +174,9 @@ public class AnotacaoService
 
         var bloco = anotacao.Blocos.FirstOrDefault(b => b.Id == blocoId);
         if (bloco == null) throw new NotFoundException("Bloco não encontrado.");
+
+        if (bloco.Tipo == TipoBloco.Imagem && !string.IsNullOrEmpty(bloco.Texto))
+            await _armazenamentoService.ExcluirArquivoAsync(bloco.Texto);
 
         anotacao.Blocos.Remove(bloco); // faltava no original — a checagem existia, mas nada era removido
         anotacao.AtualizadoEm = DateTime.UtcNow;
@@ -170,7 +196,16 @@ public class AnotacaoService
         var anotacao = await _context.Anotacoes.FirstOrDefaultAsync(a => a.Id == anotacaoId && a.UserId == userId);
         if (anotacao == null) throw new NotFoundException("Anotação não encontrada.");
 
-        anotacao.Blocos.Clear(); // era: anotacao.Blocos = dto.Blocos.Select(...).ToList();
+        var idsNovos = dto.Blocos.Where(b => b.Id != null).Select(b => b.Id).ToHashSet();
+        var imagensRemovidas = anotacao.Blocos
+            .Where(b => b.Tipo == TipoBloco.Imagem && !idsNovos.Contains(b.Id) && !string.IsNullOrEmpty(b.Texto))
+            .Select(b => b.Texto)
+            .ToList();
+
+        foreach (var url in imagensRemovidas)
+            await _armazenamentoService.ExcluirArquivoAsync(url);
+
+        anotacao.Blocos.Clear();
         var indice = 0;
         foreach (var b in dto.Blocos)
         {
@@ -261,6 +296,11 @@ public class AnotacaoService
     {
         var anotacao = await _context.Anotacoes.FirstOrDefaultAsync(a => a.Id == anotacaoId && a.UserId == userId);
         if (anotacao == null) throw new NotFoundException("Anotação não encontrada.");
+
+        var imagens = anotacao.Blocos.Where(b => b.Tipo == TipoBloco.Imagem && !string.IsNullOrEmpty(b.Texto)).Select(b => b.Texto);
+        foreach (var url in imagens)
+            await _armazenamentoService.ExcluirArquivoAsync(url);
+
         _context.Anotacoes.Remove(anotacao);
         await _context.SaveChangesAsync();
     }

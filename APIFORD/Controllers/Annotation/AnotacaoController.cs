@@ -85,6 +85,21 @@ public class AnotacaoController : ControllerBase
     public async Task<ActionResult<ReadAnotacaoDTO>> AtualizarBlocos(int id, [FromBody] AtualizarBlocosDTO dto)
         => Ok(await _anotacaoService.AtualizarBlocosAsync(id, ObterUsuarioId(), dto));
 
+
+    // AnotacaoController.cs — endpoint novo
+    /// <summary>
+    /// Envia uma imagem para o armazenamento (MinIO) e retorna a URL final, pronta pra ser
+    /// referenciada num bloco de imagem da anotação.
+    /// </summary>
+    [HttpPost("imagens")]
+    [ProducesResponseType(typeof(ImagemAnotacaoDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadImagem(IFormFile arquivo)
+    {
+        var url = await _anotacaoService.SalvarImagemAsync(arquivo);
+        return Ok(new ImagemAnotacaoDTO { Url = url });
+    }
+
     /// <summary>
     /// Atualiza apenas o texto de um bloco específico, sem afetar sua posição ou referência.
     /// </summary>

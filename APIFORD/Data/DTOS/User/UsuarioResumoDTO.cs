@@ -7,4 +7,5 @@ public class UsuarioResumoDTO
     public string Email { get; set; }
     public string Name { get; set; }
     public string? FotoPerfilUrl { get; set; }
+    public bool DoisFatoresAtivo { get; set; }
 }

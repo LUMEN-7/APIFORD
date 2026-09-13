@@ -26,11 +26,13 @@ public class UserService
     private TokenService _tokenService;
     private readonly DoisFatoresService _doisFatoresService;
     private readonly IConfiguration _configuration;
+    private readonly IArmazenamentoService _armazenamentoService;
 
 
     public UserService
         (IMapper mapper, FordDbContext context, UserManager<User> userManager, IConfiguration configuration,
-        SignInManager<User> signInManager, TokenService tokenService, DoisFatoresService doisFatoresService)
+        SignInManager<User> signInManager, TokenService tokenService, DoisFatoresService doisFatoresService,
+        IArmazenamentoService armazenamentoService)
     {
         _mapper = mapper;
         _context = context;
@@ -39,6 +41,7 @@ public class UserService
         _signInManager = signInManager;
         _tokenService = tokenService;
         _doisFatoresService = doisFatoresService;
+        _armazenamentoService = armazenamentoService;
     }
 
 
@@ -67,7 +70,7 @@ public class UserService
 
         
         LancarSeIdentityFalhou(resultado);
-        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = MontarResumo(user) };
+        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = await MontarResumoAsync(user) };
 
     }
 
@@ -94,13 +97,14 @@ public class UserService
     /// </summary>
     /// <param name="user">Usuário já carregado do banco.</param>
     /// <returns>Um <see cref="UsuarioResumoDTO"/> com os dados públicos do usuário.</returns>
-    private UsuarioResumoDTO MontarResumo(User user) => new()
+    private async Task<UsuarioResumoDTO> MontarResumoAsync(User user) => new()
     {
         Id = user.Id,
         UserName = user.UserName,
         Email = user.Email,
         Name = user.NomeExibicao,
-        FotoPerfilUrl = user.FotoPerfilUrl
+        FotoPerfilUrl = user.FotoPerfilUrl,
+        DoisFatoresAtivo = await _userManager.GetTwoFactorEnabledAsync(user)
     };
 
     /// <summary>
@@ -117,7 +121,7 @@ public class UserService
             return new LoginResponseDTO { RequerDoisFatores = true, TokenDesafio = tokenDesafio };
         }
         
-        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = MontarResumo(user) };
+        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = await MontarResumoAsync(user) };
     }
 
     /// <summary>
@@ -204,7 +208,7 @@ public class UserService
         var user = await _doisFatoresService.ValidarDesafioAsync(tokenDesafio, codigo);
         if (user == null) throw new UnauthorizedException("Código inválido ou expirado.");
 
-        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = MontarResumo(user) };
+        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = await MontarResumoAsync(user) };
     }
 
     /// <summary>
@@ -257,7 +261,7 @@ public class UserService
     {
         User user = await _userManager.FindByIdAsync(id) ?? throw new NotFoundException("Usuário não encontrado."); ;
 
-        if (dto.UserName != null) LancarSeIdentityFalhou(await _userManager.SetUserNameAsync(user, dto.UserName));
+        if (dto.NomeExibicao != null) LancarSeIdentityFalhou(await _userManager.SetUserNameAsync(user, dto.NomeExibicao));
         
         if (dto.Email != null) LancarSeIdentityFalhou(await _userManager.SetEmailAsync(user, dto.Email)); 
     }
@@ -392,5 +396,31 @@ public class UserService
         throw new InternalServerErrorException($"Falha inesperada do Identity: {mensagens}");
     }
 
+    public async Task<string?> AtualizarFotoPerfilAsync(string userId, IFormFile arquivo, string fileName, string contentType)
+    {
+        if (arquivo.Length > 5 * 1024 * 1024)
+            throw new ArgumentException("Imagem muito grande. Máximo de 5MB.");
 
+        var tiposPermitidos = new[] { "image/jpeg", "image/png", "image/webp" };
+        if (!tiposPermitidos.Contains(contentType))
+            throw new ArgumentException("Formato não suportado. Use JPEG, PNG ou WebP.");
+
+        var user = await _userManager.FindByIdAsync(userId) ?? throw new KeyNotFoundException("Usuário não encontrado.");
+        if (!string.IsNullOrEmpty(user.FotoPerfilUrl))
+            await _armazenamentoService.ExcluirArquivoAsync(user.FotoPerfilUrl);
+
+        user.FotoPerfilUrl = await _armazenamentoService.SalvarArquivoAsync(arquivo.OpenReadStream(), fileName, contentType);
+        await _userManager.UpdateAsync(user);
+        return user.FotoPerfilUrl;
+    }
+    public async Task RemoverFotoPerfilAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId) ?? throw new KeyNotFoundException("Usuário não encontrado.");
+        if (!string.IsNullOrEmpty(user.FotoPerfilUrl))
+        {
+            await _armazenamentoService.ExcluirArquivoAsync(user.FotoPerfilUrl);
+            user.FotoPerfilUrl = null;
+            await _userManager.UpdateAsync(user);
+        }
+    }
 }

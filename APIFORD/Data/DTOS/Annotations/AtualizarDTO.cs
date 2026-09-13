@@ -31,3 +31,9 @@ public class AtualizarReferenciaBlocoDTO : IValidatableObject
                 new[] { nameof(LinhagemIdReferenciado), nameof(ComparacaoIdReferenciada) });
     }
 }
+
+/// <summary>Response — URL final da imagem depois de salva no armazenamento.</summary>
+public class ImagemAnotacaoDTO
+{
+    public string Url { get; set; } = string.Empty;
+}

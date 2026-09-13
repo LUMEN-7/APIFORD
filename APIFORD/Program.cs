@@ -181,6 +181,12 @@ builder.Services.AddCors(options =>
 // ==========================================
 WebApplication app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var armazenamento = scope.ServiceProvider.GetRequiredService<IArmazenamentoService>();
+    await armazenamento.GarantirBucketExisteAsync();
+}
+
 app.UseHttpsRedirection();
 app.UseCors("FrontEnd");
 app.UseResponseCompression();
