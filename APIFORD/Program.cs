@@ -1,4 +1,5 @@
 using APIFORD.Data;
+using APIFORD.Data.DTOS;
 using APIFORD.Hubs;
 using APIFORD.Model.User;
 using APIFORD.Perfils;
@@ -115,6 +116,7 @@ builder.Services.Scan(scan => scan
     .WithScopedLifetime() // Define o tempo de vida como Scoped
 );
 
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddHostedService<AgendamentoWorker>();
 
 

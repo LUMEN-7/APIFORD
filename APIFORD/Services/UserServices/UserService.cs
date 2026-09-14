@@ -7,6 +7,7 @@ using APIFORD.Model.User;
 using AutoMapper;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Reflection;
 
 namespace APIFORD.Services.UserServices;
@@ -27,12 +28,13 @@ public class UserService
     private readonly DoisFatoresService _doisFatoresService;
     private readonly IConfiguration _configuration;
     private readonly IArmazenamentoService _armazenamentoService;
+    private readonly IEmailSenderService _emailSender; // isso aqui
 
 
     public UserService
         (IMapper mapper, FordDbContext context, UserManager<User> userManager, IConfiguration configuration,
         SignInManager<User> signInManager, TokenService tokenService, DoisFatoresService doisFatoresService,
-        IArmazenamentoService armazenamentoService)
+        IArmazenamentoService armazenamentoService, IEmailSenderService emailSender)
     {
         _mapper = mapper;
         _context = context;
@@ -42,6 +44,7 @@ public class UserService
         _tokenService = tokenService;
         _doisFatoresService = doisFatoresService;
         _armazenamentoService = armazenamentoService;
+        _emailSender = emailSender;
     }
 
 
@@ -280,6 +283,40 @@ public class UserService
         var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException("Usuário não encontrado.");
 
         LancarSeIdentityFalhou(await _userManager.ChangePasswordAsync(user, senhaAtual, senhaNova));
+    }
+
+    /// <summary>
+    /// Gera um código de verificação e envia por e-mail para iniciar a redefinição de senha.
+    /// </summary>
+    /// <param name="email">E-mail da conta que deseja redefinir a senha.</param>
+    /// <exception cref="NotFoundException">Nenhuma conta encontrada com esse e-mail.</exception>
+    public async Task EsqueciSenhaAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException("Nenhuma conta encontrada com esse e-mail.");
+
+        var codigo = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
+
+        await _emailSender.EnviarAsync(user.Email, "Código de redefinição de senha", $"Seu código de verificação é: {codigo}");
+    }
+
+    /// <summary>
+    /// Redefine a senha do usuário a partir do código de verificação enviado por e-mail, sem exigir a senha atual.
+    /// </summary>
+    /// <param name="email">E-mail da conta.</param>
+    /// <param name="codigo">Código de verificação recebido por e-mail.</param>
+    /// <param name="senhaNova">Nova senha, validada pela política de senha do Identity.</param>
+    /// <exception cref="NotFoundException">Usuário não encontrado.</exception>
+    /// <exception cref="UnauthorizedException">Código de verificação inválido ou expirado.</exception>
+    /// <exception cref="ValidationException">A nova senha não atende à política de senha do Identity.</exception>
+    public async Task RedefinirSenhaComCodigoAsync(string email, string codigo, string senhaNova)
+    {
+        var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException("Usuário não encontrado.");
+
+        var codigoValido = await _userManager.VerifyTwoFactorTokenAsync(user, "Phone", codigo);
+        if (!codigoValido) throw new UnauthorizedException("Código inválido ou expirado.");
+
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        LancarSeIdentityFalhou(await _userManager.ResetPasswordAsync(user, resetToken, senhaNova));
     }
 
     /// <summary>

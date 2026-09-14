@@ -32,22 +32,21 @@ public class ArmazenamentoService : IArmazenamentoService
     public async Task GarantirBucketExisteAsync()
     {
         bool existe = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, _bucketName);
-        if (existe) return;
-
-        await _s3Client.PutBucketAsync(_bucketName);
+        if (!existe)
+            await _s3Client.PutBucketAsync(_bucketName);
 
         var politicaPublica = $$"""
-        {
-            "Version": "2012-10-17",
-            "Statement": [{
-                "Effect": "Allow",
-                "Principal": "*",
-                "Action": ["s3:GetObject"],
-                "Resource": ["arn:aws:s3:::{{_bucketName}}/*"]
-            }]
-        }
-        """;
-        await _s3Client.PutBucketPolicyAsync(_bucketName, politicaPublica);
+            {
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": ["s3:GetObject"],
+                    "Resource": ["arn:aws:s3:::{{_bucketName}}/*"]
+                }]
+            }
+            """;
+        await _s3Client.PutBucketPolicyAsync(_bucketName, politicaPublica); // agora roda sempre, idempotente
     }
 
     public async Task<string> SalvarArquivoAsync(Stream conteudo, string nomeArquivo, string contentType)

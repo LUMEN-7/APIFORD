@@ -193,7 +193,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Logout()
     {
         await _userService.Logout();
-        return Ok("Logout realizado com sucesso");
+        return Ok();
     }
 
     //===============
@@ -216,7 +216,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDTO dto)
     {
         await _userService.UpdateUser(ObterUsuarioId(), dto);
-        return Ok("Usuário atualizado com sucesso");
+        return Ok();
     }
 
     
@@ -235,6 +235,57 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Troca a senha do usuário autenticado, exigindo a senha atual.
+    /// </summary>
+    /// <param name="dto">Senha atual e nova senha.</param>
+    /// <response code="200">Senha alterada com sucesso.</response>
+    /// <response code="401">Senha atual incorreta.</response>
+    /// <response code="400">A nova senha não atende à política de senha do Identity.</response>
+    [HttpPut("trocar-senha")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> TrocarSenha([FromBody] TrocarSenhaDTO dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await _userService.TrocarSenhaAsync(userId, dto.SenhaAtual, dto.SenhaNova);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Envia um código de verificação por e-mail para iniciar a redefinição de senha (usuário deslogado).
+    /// </summary>
+    /// <param name="dto">E-mail da conta que deseja redefinir a senha.</param>
+    /// <response code="200">Código enviado com sucesso.</response>
+    /// <response code="404">Nenhuma conta encontrada com esse e-mail.</response>
+    [HttpPost("esqueci-senha")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EsqueciSenha([FromBody] EsqueciSenhaDTO dto)
+    {
+        await _userService.EsqueciSenhaAsync(dto.Email);
+        return Ok(new { mensagem = "Código enviado para o e-mail informado." });
+    }
+
+    /// <summary>
+    /// Redefine a senha a partir do código de verificação enviado por e-mail (usuário deslogado).
+    /// </summary>
+    /// <param name="dto">E-mail, código de verificação e nova senha.</param>
+    /// <response code="200">Senha redefinida com sucesso.</response>
+    /// <response code="401">Código inválido ou expirado.</response>
+    /// <response code="404">Usuário não encontrado.</response>
+    [HttpPost("redefinir-senha")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDTO dto)
+    {
+        await _userService.RedefinirSenhaComCodigoAsync(dto.Email, dto.Codigo, dto.SenhaNova);
+        return Ok(new { mensagem = "Senha redefinida com sucesso." });
+    }
 
 
     //===============
@@ -255,7 +306,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> DeleteUser([FromQuery] string id)
     {
         await _userService.SoftDelete(id);
-        return Ok("Usuário deletado com sucesso");
+        return Ok();
     }
 
     /// <summary>
@@ -271,7 +322,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Anonymize([FromQuery] string id)
     {
         await _userService.AnonymizeAsync(id);
-        return Ok("Usuário anonimizado com sucesso");
+        return Ok();
     }
 
 }
