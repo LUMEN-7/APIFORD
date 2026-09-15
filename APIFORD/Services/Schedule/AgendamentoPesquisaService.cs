@@ -80,7 +80,7 @@ public class AgendamentoPesquisaService
         var agendamento = await _context.AgendamentosPesquisa.FirstOrDefaultAsync(a => a.Id == agendamentoId && a.UserId == userId);
         if (agendamento == null) throw new KeyNotFoundException("Agendamento não encontrado.");
 
-        var jobId = await _pesquisaService.BuscarOuIniciarAsync(new BuscaDTO { Brand = agendamento.Marca, Model = agendamento.Modelo, Year = agendamento.Ano });
+        var jobId = await _pesquisaService.BuscarOuIniciarAsync(new BuscaDTO { Brand = agendamento.Marca, Model = agendamento.Modelo, Year = agendamento.Ano }, userId);
         agendamento.UltimaExecucao = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return jobId;
@@ -135,7 +135,7 @@ public class AgendamentoPesquisaService
                 Brand = agendamento.Marca,
                 Model = agendamento.Modelo,
                 Year = agendamento.Ano
-            });
+            }, agendamento.UserId);
 
             agendamento.UltimaExecucao = agora;
 

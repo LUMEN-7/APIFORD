@@ -1,4 +1,5 @@
 ﻿using APIFORD.Data;
+using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Data.DTOS.Notifications;
 using APIFORD.Hubs;
 using APIFORD.Middleware;
@@ -252,7 +253,7 @@ public class NotificacaoService
         await _context.SaveChangesAsync();
     }
 
-    internal async Task<object?> ObterQuantasAtivas(string usuarioId)
+    public async Task<object?> ObterQuantasAtivas(string usuarioId)
     {
          try
          {
@@ -264,5 +265,28 @@ public class NotificacaoService
          {
              throw new InternalServerErrorException("Erro ao obter quantidade de alertas ativos.");
          }
+    }
+
+    public async Task NotificarBuscaConcluidaAsync(string userId, Guid jobId, ReadCarroDTO carro)
+    {
+        var evento = new NotificacaoEvento
+        {
+            Tipo = NotificationTypes.BUSCA_CONCLUIDA, // adiciona essa constante
+            Titulo = "Sua busca terminou!",
+            Mensagem = $"Encontramos as especificações de {carro.Marca} {carro.Modelo}.",
+            DataCriacao = DateTime.UtcNow,
+            Destinatarios = new List<NotificacaoUsuario> { new() { UserId = userId, Lida = false } }
+        };
+
+        await _context.NotificacoesEventos.AddAsync(evento);
+        await _context.SaveChangesAsync();
+
+        var dto = _mapper.Map<ReadNotificationDTO>(evento.Destinatarios.First());
+
+        // evento genérico, pra sino de notificações
+        await _hubContext.Clients.User(userId).SendAsync("ReceberNovaNotificacao", dto);
+
+        // evento específico, pra quem estiver na tela de busca escutando por esse jobId
+        await _hubContext.Clients.User(userId).SendAsync("BuscaConcluida", new { jobId, carro });
     }
 }

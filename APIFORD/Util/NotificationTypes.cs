@@ -7,7 +7,8 @@ public enum NotificationTypes
     UPDATE,
     LANCAMENTO,
     SYSTEM,
-    REPORT
+    REPORT,
+    BUSCA_CONCLUIDA
 }
 
 public enum TipoDestinoNotificacao

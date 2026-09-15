@@ -22,4 +22,7 @@ public class Job
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public string? UserId { get; set; }
+    public int? CarroId { get; set; }      // preenchido quando processado
+    public bool Notificado { get; set; }
 }

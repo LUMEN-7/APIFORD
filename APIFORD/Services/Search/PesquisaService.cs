@@ -58,7 +58,7 @@ public class PesquisaService
     // POST /Pesquisa/busca
     // Envia o pedido ao Python e retorna o job_id imediatamente (~5ms)
     // -------------------------------------------------------------------------
-    public async Task<Guid> BuscarOuIniciarAsync(BuscaDTO dto, bool forcarNovaBusca = false)
+    public async Task<Guid> BuscarOuIniciarAsync(BuscaDTO dto, string userId, bool forcarNovaBusca = false)
     {
         if (!forcarNovaBusca)
         {
@@ -75,7 +75,10 @@ public class PesquisaService
                     Payload = JsonSerializer.Serialize(dto),
                     Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = carroExistente.Id }),
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
+                    UserId = userId,
+                    CarroId = carroExistente.Id,
+                    Notificado = true
                 };
 
                 await _context.Jobs.AddAsync(jobDeCache);
@@ -85,7 +88,31 @@ public class PesquisaService
             }
         }
 
-        return await IniciarBusca(dto);
+        return await IniciarBusca(dto,userId);
+    }
+
+    public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
+    {
+        var response = await _httpClient.PostAsJsonAsync("http://127.0.0.1:8000/specs", dto);
+
+        if (!response.IsSuccessStatusCode)
+            throw new ServiceUnavailableException("Microserviço Python indisponível.");
+
+        var payload = await response.Content.ReadFromJsonAsync<PythonJobResponse>(_jsonOptions);
+
+        if (payload == null)
+            throw new ExternalServiceException("Python", " não retornou um job_id válido.");
+
+        // O job já deve ter sido criado no banco pelo próprio Python (é de lá que vem o job_id).
+        // Aqui só localizamos esse registro e completamos o UserId, que o Python não tem como saber.
+        var job = await _context.Jobs.FindAsync(payload.JobId);
+        if (job != null)
+        {
+            job.UserId = userId;
+            await _context.SaveChangesAsync();
+        }
+
+        return payload.JobId;
     }
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto)
@@ -100,6 +127,9 @@ public class PesquisaService
         if (payload == null)
             throw new ExternalServiceException("Python", " não retornou um job_id válido.");
 
+        // O job já deve ter sido criado no banco pelo próprio Python (é de lá que vem o job_id).
+        // Aqui só localizamos esse registro e completamos o UserId, que o Python não tem como saber.
+        var job = await _context.Jobs.FindAsync(payload.JobId);
         return payload.JobId;
     }
 
@@ -110,36 +140,28 @@ public class PesquisaService
     public async Task<JobStatusDTO> ChecarJob(Guid jobId)
     {
         var job = await _context.Jobs.FindAsync(jobId);
-        if (job == null)
-            throw new NotFoundException($"Job {jobId} não encontrado.");
+        if (job == null) throw new NotFoundException($"Job {jobId} não encontrado.");
 
-        if (job.Status is "pending" or "running" or "error")
+        if (job.Status != "done" || job.CarroId == null)
             return new JobStatusDTO { Status = job.Status, Error = job.Error };
 
-        // Se done mas o carro já foi processado (Result limpo anteriormente)
-        if (job.Status == "done" && string.IsNullOrWhiteSpace(job.Result))
-            return new JobStatusDTO { Status = "done" };
+        var carro = await _carroService.GetByIdAsync(job.CarroId.Value); // ajusta pro método que você já tem
+        return new JobStatusDTO { Status = "done", Carro = carro };
+    }
 
-        // Processa o resultado apenas na primeira vez que identifica como done
-        if (job.Status == "done" && !string.IsNullOrWhiteSpace(job.Result))
-        {
-            var readCarroDto = await ProcessarESalvarCarro(job);
-
-            // Limpa o payload gigante de resultado para poupar espaço no banco
-            job.Result = null;
-            job.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return new JobStatusDTO { Status = "done", Carro = readCarroDto };
-        }
-
-        return new JobStatusDTO { Status = job.Status };
+    public async Task<ReadCarroDTO> ProcessarJobPendenteAsync(Job job)
+    {
+        var readDto = await ProcessarESalvarCarro(job); // método privado que você já tem
+        job.CarroId = readDto.Id; // ajusta pro nome real da propriedade Id no seu ReadCarroDTO
+        job.Result = null;
+        job.UpdatedAt = DateTime.UtcNow;
+        return readDto;
     }
 
     // -------------------------------------------------------------------------
     // Processamento do C# - Refatorado para o padrão JSONB
     // -------------------------------------------------------------------------
-   private async Task<ReadCarroDTO> ProcessarESalvarCarro(Job job)
+    private async Task<ReadCarroDTO> ProcessarESalvarCarro(Job job)
 {
     var resultado = JsonSerializer.Deserialize<JobResultDTO>(job.Result!, _jsonOptions);
     if (resultado == null || resultado.CarroId <= 0)

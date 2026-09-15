@@ -1,7 +1,9 @@
 ﻿// APIFORD/Controllers/Search/PesquisaController.cs
 using APIFORD.Data.DTOS.Search;
+using APIFORD.Middleware;
 using APIFORD.Services.Search;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace APIFORD.Controllers.Search;
 
@@ -24,6 +26,14 @@ public class PesquisaController : ControllerBase
     public PesquisaController(PesquisaService pesquisaService)
     {
         _pesquisaService = pesquisaService;
+    }
+
+    protected string ObterUsuarioId()
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(id))
+            throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
+        return id;
     }
 
     /// <summary>
@@ -50,7 +60,7 @@ public class PesquisaController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> Busca([FromBody] BuscaDTO dto, [FromQuery] bool forcarNovaBusca = false)
     {
-        var jobId = await _pesquisaService.BuscarOuIniciarAsync(dto, forcarNovaBusca);
+        var jobId = await _pesquisaService.BuscarOuIniciarAsync(dto, ObterUsuarioId(), forcarNovaBusca);
         return Accepted(new { job_id = jobId });
     }
 

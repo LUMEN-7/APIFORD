@@ -108,13 +108,15 @@ builder.Services.AddHttpClient();
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<Program>()
     .AddClasses(classes => classes
-        .InNamespaces("APIFORD.Services") 
-        .Where(type => type.Name.EndsWith("Service")) 
+        .InNamespaces("APIFORD.Services")
+        .Where(type => type.Name.EndsWith("Service") && !typeof(IHostedService).IsAssignableFrom(type))
     )
-    .AsSelf() // Regista como
-    .AsImplementedInterfaces() // Regista como IBaseService<...>
-    .WithScopedLifetime() // Define o tempo de vida como Scoped
+    .AsSelf()
+    .AsImplementedInterfaces()
+    .WithScopedLifetime()
 );
+
+builder.Services.AddHostedService<BuscaJobWatcherService>();
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddHostedService<AgendamentoWorker>();

@@ -236,4 +236,18 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         if (versoes.Any()) versoes[0].EhVersaoAtual = true;
         return versoes;
     }
+
+    public async Task<ReadCarroDTO?> ObterPorIdExatoAsync(int carroId)
+    {
+        var carro = await DbSet.FirstOrDefaultAsync(c => c.Id == carroId);
+        if (carro == null) return null;
+
+        var dto = Mapper.Map<ReadCarroDTO>(carro);
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dto, carro);
+        return dto;
+    }
+
+    public async Task<object?> GetImagemByIdAsync(int carroId)
+        => await DbSet.Where(c => c.Id == carroId).Select(c => c.ImagemUrl).FirstOrDefaultAsync();
+    
 }

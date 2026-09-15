@@ -49,6 +49,18 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
         return Ok(dto);
     }
 
+    [HttpGet("versao/{carroId}")]
+    public async Task<ActionResult<ReadCarroDTO>> ObterVersaoEspecifica(int carroId)
+    {
+        var carro = await _CarroService.ObterPorIdExatoAsync(carroId);
+        return carro == null ? NotFound() : Ok(carro);
+    }
+
+    [HttpGet("Imagem-Carro/{carroId}")]
+    public async Task<ActionResult<string>> GetImagemById(int carroId)
+        =>Ok(new { ImagemUrl = await _CarroService.GetImagemByIdAsync(carroId) });
+    
+
     /// <summary>
     /// Lista o histórico de versões de uma linhagem, da mais recente para a mais antiga.
     /// A mais recente vem marcada com <c>EhVersaoAtual = true</c>.
