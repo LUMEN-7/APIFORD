@@ -31,22 +31,25 @@ public class ArmazenamentoService : IArmazenamentoService
 
     public async Task GarantirBucketExisteAsync()
     {
-        bool existe = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, _bucketName);
-        if (!existe)
-            await _s3Client.PutBucketAsync(_bucketName);
+        try
+        {
+            bool existe = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, _bucketName);
+            if (existe) return;
 
-        var politicaPublica = $$"""
-            {
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Principal": "*",
-                    "Action": ["s3:GetObject"],
-                    "Resource": ["arn:aws:s3:::{{_bucketName}}/*"]
-                }]
-            }
-            """;
-        await _s3Client.PutBucketPolicyAsync(_bucketName, politicaPublica); // agora roda sempre, idempotente
+            await _s3Client.PutBucketAsync(_bucketName);
+            // Política pública automática só funciona no MinIO — na R2, o bucket já foi
+            // criado e configurado como público manualmente pelo painel, então isso é opcional.
+            var politicaPublica = $$"""
+        { "Version": "2012-10-17", "Statement": [{ "Effect": "Allow", "Principal": "*", "Action": ["s3:GetObject"], "Resource": ["arn:aws:s3:::{{_bucketName}}/*"] }] }
+        """;
+            await _s3Client.PutBucketPolicyAsync(_bucketName, politicaPublica);
+        }
+        catch (Exception ex)
+        {
+            // Não derruba a API se o provedor não suportar esse passo (ex: R2) —
+            // nesses casos o bucket já deve ter sido criado manualmente no painel.
+            Console.WriteLine($"Aviso: não foi possível garantir/configurar o bucket automaticamente: {ex.Message}");
+        }
     }
 
     public async Task<string> SalvarArquivoAsync(Stream conteudo, string nomeArquivo, string contentType)
