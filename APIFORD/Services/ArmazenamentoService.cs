@@ -29,6 +29,7 @@ public class ArmazenamentoService : IArmazenamentoService
                 ServiceURL = configuration["Armazenamento:Endpoint"], ForcePathStyle = true,
                 RequestChecksumCalculation = Amazon.Runtime.RequestChecksumCalculation.WHEN_REQUIRED,
                 ResponseChecksumValidation = Amazon.Runtime.ResponseChecksumValidation.WHEN_REQUIRED
+
             }
         );
     }
