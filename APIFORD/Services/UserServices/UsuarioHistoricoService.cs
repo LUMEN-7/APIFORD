@@ -64,7 +64,7 @@ public class UsuarioHistoricoService
     /// Remove um carro previamente favoritado por um usuário.
     /// </summary>
     /// <param name="usuarioId">Id do usuário dono do favorito.</param>
-    /// <param name="carroId">Id do carro a ser removido dos favoritos.</param>
+    /// <param name="linhagemId">Id da linhagem do carro a ser removido dos favoritos.</param>
     /// <returns><c>true</c> quando o modelo é removido com sucesso.</returns>
     /// <exception cref="NotFoundException">Lançada quando o carro não está favoritado por esse usuário.</exception>
     public async Task<bool> RemoverModeloAsync(string usuarioId, int linhagemId)

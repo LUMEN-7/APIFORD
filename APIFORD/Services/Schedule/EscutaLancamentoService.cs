@@ -136,8 +136,12 @@ public class EscutaLancamentoService
 
             if (job.Status == "done")
             {
-                var resultado = JsonSerializer.Deserialize<JobResultDTO>(job.Result!);
-                var carro = await _context.Carros.FirstOrDefaultAsync(c => c.Id == resultado.CarroId);
+                var resultado = string.IsNullOrWhiteSpace(job.Result)
+                    ? null
+                    : JsonSerializer.Deserialize<JobResultDTO>(job.Result);
+                var carro = resultado is null
+                    ? null
+                    : await _context.Carros.FirstOrDefaultAsync(c => c.Id == resultado.CarroId);
                 if (carro != null)
                 {
                     var userIds = await _context.EscutasLancamentoUsuario

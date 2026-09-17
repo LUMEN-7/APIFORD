@@ -73,7 +73,7 @@ public class UserService
 
         
         LancarSeIdentityFalhou(resultado);
-        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = await MontarResumoAsync(user) };
+        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = await _tokenService.GenerateTokenAsync(user), Usuario = await MontarResumoAsync(user) };
 
     }
 
@@ -124,7 +124,7 @@ public class UserService
             return new LoginResponseDTO { RequerDoisFatores = true, TokenDesafio = tokenDesafio };
         }
         
-        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = await MontarResumoAsync(user) };
+        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = await _tokenService.GenerateTokenAsync(user), Usuario = await MontarResumoAsync(user) };
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public class UserService
         var user = await _doisFatoresService.ValidarDesafioAsync(tokenDesafio, codigo);
         if (user == null) throw new UnauthorizedException("Código inválido ou expirado.");
 
-        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = _tokenService.GenerateToken(user), Usuario = await MontarResumoAsync(user) };
+        return new LoginResponseDTO { RequerDoisFatores = false, AccessToken = await _tokenService.GenerateTokenAsync(user), Usuario = await MontarResumoAsync(user) };
     }
 
     /// <summary>

@@ -90,7 +90,7 @@ public class NotificacaoController : ControllerBase
     /// <param name="dto">Dados da notificação a ser criada e distribuída.</param>
     /// <returns>Um <see cref="IActionResult"/> contendo <c>200 OK</c> com os dados da notificação criada.</returns>
     [HttpPost("criar")]
-    //[Authorize(Roles = "Admin")] // além do [Authorize] de classe, exige role de admin
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ReadNotificationDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CriarBroadcast(CreateNotificationDTO dto)

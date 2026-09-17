@@ -46,6 +46,7 @@ public class UserController : ControllerBase
     /// <response code="200">A lista de usuários foi recuperada com sucesso.</response>
     /// <response code="401">Usuário não autenticado.</response>
     [HttpGet("usuarios")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetUsers()
@@ -188,6 +189,7 @@ public class UserController : ControllerBase
     /// <response code="200">Logout realizado com sucesso.</response>
     /// <response code="401">Usuário não autenticado.</response>
     [HttpPost("logout")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Logout()
@@ -210,6 +212,7 @@ public class UserController : ControllerBase
     /// <response code="400">Os dados informados para atualização são inválidos.</response>
     /// <response code="404">Usuário não encontrado para o ID informado.</response>
     [HttpPut("atualizar")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -221,6 +224,7 @@ public class UserController : ControllerBase
 
     
     [HttpPost("foto-perfil")]
+    [Authorize]
     public async Task<IActionResult> AtualizarFotoPerfil(IFormFile arquivo)
     {
         var url = await _userService.AtualizarFotoPerfilAsync(ObterUsuarioId(), arquivo, arquivo.FileName, arquivo.ContentType);
@@ -229,6 +233,7 @@ public class UserController : ControllerBase
 
     
     [HttpDelete("foto-perfil")]
+    [Authorize]
     public async Task<IActionResult> RemoverFotoPerfil()
     {
         await _userService.RemoverFotoPerfilAsync(ObterUsuarioId());
@@ -243,13 +248,13 @@ public class UserController : ControllerBase
     /// <response code="401">Senha atual incorreta.</response>
     /// <response code="400">A nova senha não atende à política de senha do Identity.</response>
     [HttpPut("trocar-senha")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> TrocarSenha([FromBody] TrocarSenhaDTO dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        await _userService.TrocarSenhaAsync(userId, dto.SenhaAtual, dto.SenhaNova);
+        await _userService.TrocarSenhaAsync(ObterUsuarioId(), dto.SenhaAtual, dto.SenhaNova);
         return Ok();
     }
 
@@ -296,32 +301,32 @@ public class UserController : ControllerBase
     /// <summary>
     /// Inativa logicamente a conta de um usuário (Soft Delete).
     /// </summary>
-    /// <param name="id">A chave pAroária do usuário a ser desativado.</param>
     /// <returns>Uma mensagem confirmando a remoção.</returns>
     /// <response code="200">Usuário inativado com sucesso.</response>
     /// <response code="404">Usuário não encontrado para o ID informado.</response>
     [HttpDelete("deletar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteUser([FromQuery] string id)
+    [Authorize]
+    public async Task<IActionResult> DeleteUser()
     {
-        await _userService.SoftDelete(id);
+        await _userService.SoftDelete(ObterUsuarioId());
         return Ok();
     }
 
     /// <summary>
     /// Executa a anonimização dos dados de um usuário alterando informações sensíveis para "Unknown".
     /// </summary>
-    /// <param name="id">A chave pAroária do usuário a ser anonimizado.</param>
     /// <returns>Uma mensagem confirmando a anonimização.</returns>
     /// <response code="200">Usuário anonimizado com sucesso.</response>
     /// <response code="404">Usuário não encontrado para o ID informado.</response>
     [HttpDelete("anonimizar")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Anonymize([FromQuery] string id)
+    [Authorize]
+    public async Task<IActionResult> Anonymize()
     {
-        await _userService.AnonymizeAsync(id);
+        await _userService.AnonymizeAsync(ObterUsuarioId());
         return Ok();
     }
 

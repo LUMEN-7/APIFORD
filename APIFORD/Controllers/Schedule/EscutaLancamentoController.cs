@@ -16,7 +16,7 @@ namespace APIFORD.Controllers.Schedule;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-//[Authorize]
+[Authorize]
 public class EscutaLancamentoController : ControllerBase
 {
     private readonly EscutaLancamentoService _escutaService;

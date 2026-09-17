@@ -3,6 +3,7 @@ using APIFORD.Data.DTOS.Search;
 using APIFORD.Middleware;
 using APIFORD.Services.Search;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace APIFORD.Controllers.Search;
@@ -15,6 +16,7 @@ namespace APIFORD.Controllers.Search;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class PesquisaController : ControllerBase
 {
     private readonly PesquisaService _pesquisaService;
@@ -82,6 +84,6 @@ public class PesquisaController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChecarJob(Guid id)
     {
-        return Ok(await _pesquisaService.ChecarJob(id));
+        return Ok(await _pesquisaService.ChecarJob(id, ObterUsuarioId()));
     }
 }

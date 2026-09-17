@@ -1,4 +1,5 @@
 ﻿using APIFORD.Model.User;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,21 +10,26 @@ namespace APIFORD.Services.UserServices;
 public class TokenService
 {
     private IConfiguration _configuration;
+    private readonly UserManager<User> _userManager;
 
-    public TokenService(IConfiguration configuration)
+    public TokenService(IConfiguration configuration, UserManager<User> userManager)
     {
         _configuration = configuration;
+        _userManager = userManager;
     }
 
-    public string GenerateToken(User user)
+    public async Task<string> GenerateTokenAsync(User user)
     {
-        Claim[] claims = new Claim[]
+        var claims = new List<Claim>
         {
-            new Claim("username", user.UserName),
-            new Claim("email", user.Email),
+            new Claim("username", user.UserName ?? string.Empty),
+            new Claim("email", user.Email ?? string.Empty),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim("loginTimestamp", DateTime.UtcNow.ToString())
         };
+
+        foreach (var role in await _userManager.GetRolesAsync(user))
+            claims.Add(new Claim(ClaimTypes.Role, role));
 
         var chave = new SymmetricSecurityKey
             (Encoding.UTF8.GetBytes
@@ -35,7 +41,7 @@ public class TokenService
         var horasExpiracao = _configuration.GetValue<double>("TokenExpiracaoHoras", 12);
 
         var token = new JwtSecurityToken(
-            expires: DateTime.Now.AddHours(horasExpiracao), // era AddMinutes(10)
+            expires: DateTime.UtcNow.AddHours(horasExpiracao),
             claims: claims,
             signingCredentials: signingCredentials
         );

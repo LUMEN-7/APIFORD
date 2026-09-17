@@ -1,6 +1,7 @@
 ﻿using APIFORD.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace APIFORD.Controllers;
 
@@ -35,6 +36,7 @@ public abstract class BaseController<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, 
     /// <response code="200">Retorna o objeto criado com sucesso.</response>
     /// <response code="400">Os dados enviados no DTO são inválidos ou estão incompletos.</response>
     [HttpPost("registrar")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public virtual async Task<IActionResult> Create([FromBody] TCreateDTO dto)
@@ -82,6 +84,7 @@ public abstract class BaseController<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, 
     /// <response code="400">O DTO enviado possui dados inválidos.</response>
     /// <response code="404">Nenhum registro encontrado para o ID informado.</response>
     [HttpPut("atualizar/{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -100,11 +103,12 @@ public abstract class BaseController<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, 
     /// <response code="200">Registro desativado com sucesso.</response>
     /// <response code="404">Nenhum registro encontrado com o ID informado.</response>
     [HttpDelete("deletar/{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public virtual async Task<IActionResult> SoftDelete(TKey id)
     {
-        await Service.SoftDeleteAsync(id);
+        if (!await Service.SoftDeleteAsync(id)) return NotFound();
         return Ok("Registro removido com sucesso.");
     }
 
@@ -116,11 +120,12 @@ public abstract class BaseController<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, 
     /// <response code="200">Os dados foram anonimizados com sucesso.</response>
     /// <response code="404">Nenhum registro encontrado com o ID informado.</response>
     [HttpDelete("anonimizar/{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public virtual async Task<IActionResult> Anonymize(TKey id)
     {
-        await Service.AnonymizeAsync(id);
+        if (!await Service.AnonymizeAsync(id)) return NotFound();
         return Ok("Registro anonimizado com sucesso.");
     }
 }

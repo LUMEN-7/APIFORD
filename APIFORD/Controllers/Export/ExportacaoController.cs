@@ -12,7 +12,7 @@ namespace APIFORD.Controllers.Export;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-//[Authorize]
+[Authorize]
 public class ExportacaoController : ControllerBase
 {
     private readonly ExportacaoService _exportacaoService;

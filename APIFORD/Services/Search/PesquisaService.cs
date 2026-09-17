@@ -137,9 +137,9 @@ public class PesquisaService
     // GET /Pesquisa/jobs/{id}
     // Checa o status do job. Se done, processa e salva o carro no banco.
     // -------------------------------------------------------------------------
-    public async Task<JobStatusDTO> ChecarJob(Guid jobId)
+    public async Task<JobStatusDTO> ChecarJob(Guid jobId, string userId)
     {
-        var job = await _context.Jobs.FindAsync(jobId);
+        var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Id == jobId && j.UserId == userId);
         if (job == null) throw new NotFoundException($"Job {jobId} não encontrado.");
 
         if (job.Status != "done" || job.CarroId == null)

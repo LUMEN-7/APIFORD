@@ -18,7 +18,7 @@ namespace APIFORD.Controllers.UserControllers;
 /// </summary>
 [ApiController]
 [Route("user")]
-//[Authorize] // Garante que apenas usuários logados acessem essas rotas
+[Authorize]
 public class UsuarioHistoricoController : ControllerBase
 {
     private readonly UsuarioHistoricoService _service;
@@ -74,7 +74,8 @@ public class UsuarioHistoricoController : ControllerBase
     public async Task<IActionResult> SalvarModelo([FromBody] CreateModeloSalvoDTO dto)
     {
         var userId = ObterUsuarioId();
-        var sucesso = await _service.SalvarModeloAsync(ObterUsuarioId(), dto);
+        var sucesso = await _service.SalvarModeloAsync(userId, dto);
+        if (!sucesso) return NotFound();
         return Created("",sucesso);
     }
 
@@ -96,6 +97,7 @@ public class UsuarioHistoricoController : ControllerBase
     public async Task<IActionResult> RemoverModelo(int linhagemId)
     {
         var sucesso = await _service.RemoverModeloAsync(ObterUsuarioId(), linhagemId);
+        if (!sucesso) return NotFound();
         return NoContent();
     }
 

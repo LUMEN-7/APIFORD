@@ -3,6 +3,7 @@ using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Middleware;
 using APIFORD.Services.CarroServices;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.JSInterop.Implementation;
 using System.Security.Claims;
 using System.Text.Json;
@@ -84,7 +85,7 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
     /// (confiança 1.0) dentro do envelope <see cref="Model.CarroClasses.PropriedadeScraping{T}"/> da propriedade.
     /// </remarks>
     [HttpPatch("edicao-admin/{id}")]
-    // [Authorize(Roles = "Admin")] // Descomente quando integrar a autenticação
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

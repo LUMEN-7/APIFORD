@@ -20,17 +20,20 @@ public class AgendamentoPesquisaService
     private readonly FordDbContext _context;
     private readonly PesquisaService _pesquisaService;
     private readonly IMapper _mapper;
+    private readonly ILogger<AgendamentoPesquisaService> _logger;
     /// <summary>
     /// Inicializa uma nova instância do <see cref="AgendamentoPesquisaService"/>.
     /// </summary>
     /// <param name="context">Contexto do banco de dados Ford.</param>
     /// <param name="pesquisaService">Serviço utilizado para disparar a busca de carros quando um agendamento é executado.</param>
     /// <param name="mapper">Mapeador AutoMapper para conversão entre entidades e DTOs.</param>
-    public AgendamentoPesquisaService(FordDbContext context, PesquisaService pesquisaService, IMapper mapper)
+    /// <param name="logger">Registrador de falhas durante o processamento dos agendamentos.</param>
+    public AgendamentoPesquisaService(FordDbContext context, PesquisaService pesquisaService, IMapper mapper, ILogger<AgendamentoPesquisaService> logger)
     {
         _context = context;
         _pesquisaService = pesquisaService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     /// <summary>
@@ -130,30 +133,44 @@ public class AgendamentoPesquisaService
 
         foreach (var agendamento in pendentes)
         {
-            await _pesquisaService.IniciarBusca(new BuscaDTO
+            try
             {
-                Brand = agendamento.Marca,
-                Model = agendamento.Modelo,
-                Year = agendamento.Ano
-            }, agendamento.UserId);
-
-            agendamento.UltimaExecucao = agora;
-
-            if (agendamento.Recorrencia == RecorrenciaAgendamento.Unica)
-            {
-                agendamento.Status = StatusAgendamento.Concluido;
-            }
-            else
-            {
-                agendamento.ProximaExecucao = agendamento.Recorrencia switch
+                await _pesquisaService.IniciarBusca(new BuscaDTO
                 {
-                    RecorrenciaAgendamento.Diaria => agora.AddDays(1),
-                    RecorrenciaAgendamento.Semanal => agora.AddDays(7),
-                    _ => agora.AddMonths(1)
-                };
+                    Brand = agendamento.Marca,
+                    Model = agendamento.Modelo,
+                    Year = agendamento.Ano
+                }, agendamento.UserId);
+
+                agendamento.UltimaExecucao = agora;
+                if (agendamento.Recorrencia == RecorrenciaAgendamento.Unica)
+                    agendamento.Status = StatusAgendamento.Concluido;
+                else
+                    agendamento.ProximaExecucao = CalcularProximaExecucao(agendamento.ProximaExecucao, agendamento.Recorrencia, agora);
+            }
+            catch (Exception ex)
+            {
+                // Mantém o agendamento pendente para uma nova tentativa no próximo ciclo.
+                _logger.LogError(ex, "Falha ao disparar o agendamento {AgendamentoId}", agendamento.Id);
             }
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    private static DateTime CalcularProximaExecucao(DateTime proximaExecucao, RecorrenciaAgendamento recorrencia, DateTime agora)
+    {
+        var proxima = proximaExecucao;
+        do
+        {
+            proxima = recorrencia switch
+            {
+                RecorrenciaAgendamento.Diaria => proxima.AddDays(1),
+                RecorrenciaAgendamento.Semanal => proxima.AddDays(7),
+                _ => proxima.AddMonths(1)
+            };
+        } while (proxima <= agora);
+
+        return proxima;
     }
 }
