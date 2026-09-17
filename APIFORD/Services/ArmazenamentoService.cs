@@ -25,7 +25,11 @@ public class ArmazenamentoService : IArmazenamentoService
         _s3Client = new AmazonS3Client(
             configuration["Armazenamento:AccessKey"],
             configuration["Armazenamento:SecretKey"],
-            new AmazonS3Config { ServiceURL = configuration["Armazenamento:Endpoint"], ForcePathStyle = true }
+            new AmazonS3Config { 
+                ServiceURL = configuration["Armazenamento:Endpoint"], ForcePathStyle = true,
+                RequestChecksumCalculation = Amazon.Runtime.RequestChecksumCalculation.WHEN_REQUIRED,
+                ResponseChecksumValidation = Amazon.Runtime.ResponseChecksumValidation.WHEN_REQUIRED
+            }
         );
     }
 
