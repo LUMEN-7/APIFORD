@@ -65,7 +65,8 @@ public class ArmazenamentoService : IArmazenamentoService
             BucketName = _bucketName,
             Key = chave,
             InputStream = conteudo,
-            ContentType = contentType
+            ContentType = contentType,
+            UseChunkEncoding = false
         });
         return $"{_urlPublicaBase}/{chave}";
     }
