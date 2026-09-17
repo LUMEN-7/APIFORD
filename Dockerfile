@@ -9,7 +9,7 @@ COPY . .
 RUN dotnet publish APIFORD/APIFORD.csproj -c Release -o /app/publish
 
 # Estágio 2: runtime (imagem final, bem menor que a de build)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
