@@ -6,6 +6,7 @@ using APIFORD.Model.CarroClasses;
 using APIFORD.Model.Notification;
 using APIFORD.Model.Schedule;
 using APIFORD.Model.User;
+using APIFORD.Model.Workspace;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
@@ -31,9 +32,33 @@ public class FordDbContext : IdentityDbContext<User>
     public DbSet<EscutaLancamento> EscutasLancamento { get; set; }
     public DbSet<EscutaLancamentoUsuario> EscutasLancamentoUsuario { get; set; }
 
+    public DbSet<WorkspacePost> WorkspacePosts { get; set; }
+    public DbSet<WorkspaceComentario> WorkspaceComentarios { get; set; }
+    public DbSet<WorkspaceCurtida> WorkspaceCurtidas { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+
+        // ==========================================
+        // TABELAS WORKSPACE
+        // ==========================================
+        builder.Entity<WorkspacePost>(entity =>
+        {
+            
+            entity.Property(p => p.Tipo).HasConversion<string>();
+            entity.Property(p => p.Status).HasConversion<string>();
+            entity.Property(p => p.TipoConteudoVinculado).HasConversion<string>();
+            entity.HasMany(p => p.Comentarios).WithOne(c => c.WorkspacePost).HasForeignKey(c => c.WorkspacePostId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(p => p.Curtidas).WithOne(c => c.WorkspacePost).HasForeignKey(c => c.WorkspacePostId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<WorkspaceCurtida>(entity =>
+            entity.HasIndex(c => new { c.WorkspacePostId, c.UserId }).IsUnique() // trava 1 curtida por pessoa por post, no nível do banco
+        );
+
+
+
 
         // ==========================================
         // TABELA NOTIFICACOES
