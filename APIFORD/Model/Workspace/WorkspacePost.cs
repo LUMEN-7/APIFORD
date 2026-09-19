@@ -11,7 +11,7 @@ public class WorkspacePost
     public List<string> Tags { get; set; } = new();
     public string? ResponsavelUserId { get; set; }
     public StatusRevisao? Status { get; set; }
-
+    public int EquipeId { get; set; }
     public TipoConteudoVinculado? TipoConteudoVinculado { get; set; }
     public int? ConteudoVinculadoId { get; set; }
     public string? ConteudoVinculadoTitulo { get; set; }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class FordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260919154916_espcs carros")]
+    partial class espcscarros
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -593,72 +596,6 @@ namespace APIFORD.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("APIFORD.Model.Workspace.Teams.Equipe", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CriadoEm")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("criado_em");
-
-                    b.Property<string>("CriadorUserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("criador_user_id");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("nome");
-
-                    b.HasKey("Id")
-                        .HasName("pk_equipes");
-
-                    b.ToTable("equipes", (string)null);
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Workspace.Teams.EquipeMembro", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("EntrouEm")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("entrou_em");
-
-                    b.Property<int>("EquipeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("equipe_id");
-
-                    b.Property<string>("Papel")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("papel");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_equipe_membros");
-
-                    b.HasIndex("EquipeId", "UserId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_equipe_membros_equipe_id_user_id");
-
-                    b.ToTable("equipe_membros", (string)null);
-                });
-
             modelBuilder.Entity("APIFORD.Model.Workspace.WorkspaceComentario", b =>
                 {
                     b.Property<int>("Id")
@@ -754,10 +691,6 @@ namespace APIFORD.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("criado_em");
 
-                    b.Property<int>("EquipeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("equipe_id");
-
                     b.Property<bool>("Fixado")
                         .HasColumnType("boolean")
                         .HasColumnName("fixado");
@@ -786,9 +719,6 @@ namespace APIFORD.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_workspace_posts");
-
-                    b.HasIndex("EquipeId")
-                        .HasDatabaseName("ix_workspace_posts_equipe_id");
 
                     b.ToTable("workspace_posts", (string)null);
                 });
@@ -2701,18 +2631,6 @@ namespace APIFORD.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("APIFORD.Model.Workspace.Teams.EquipeMembro", b =>
-                {
-                    b.HasOne("APIFORD.Model.Workspace.Teams.Equipe", "Equipe")
-                        .WithMany("Membros")
-                        .HasForeignKey("EquipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_equipe_membros_equipes_equipe_id");
-
-                    b.Navigation("Equipe");
-                });
-
             modelBuilder.Entity("APIFORD.Model.Workspace.WorkspaceComentario", b =>
                 {
                     b.HasOne("APIFORD.Model.Workspace.WorkspacePost", "WorkspacePost")
@@ -2735,16 +2653,6 @@ namespace APIFORD.Migrations
                         .HasConstraintName("fk_workspace_curtidas_workspace_posts_workspace_post_id");
 
                     b.Navigation("WorkspacePost");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Workspace.WorkspacePost", b =>
-                {
-                    b.HasOne("APIFORD.Model.Workspace.Teams.Equipe", null)
-                        .WithMany()
-                        .HasForeignKey("EquipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_workspace_posts_equipes_equipe_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2822,11 +2730,6 @@ namespace APIFORD.Migrations
             modelBuilder.Entity("APIFORD.Model.User.User", b =>
                 {
                     b.Navigation("ModelosSalvos");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Workspace.Teams.Equipe", b =>
-                {
-                    b.Navigation("Membros");
                 });
 
             modelBuilder.Entity("APIFORD.Model.Workspace.WorkspacePost", b =>

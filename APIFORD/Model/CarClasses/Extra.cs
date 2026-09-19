@@ -12,5 +12,10 @@ public class Extra
     public PropriedadeScraping<decimal> CapacidadeCarga { get; set; } = new();
     public PropriedadeScraping<decimal> CapacidadeReboque { get; set; } = new();
 
-    
+    public PropriedadeScraping<string> Performace { get; set; } = new();
+    public PropriedadeScraping<string> Segurança { get; set; } = new();
+    public PropriedadeScraping<string> Conforto { get; set; } = new();
+    public PropriedadeScraping<string> Tecnoligas { get; set; } = new();
+
+
 }

@@ -7,6 +7,7 @@ using APIFORD.Model.Notification;
 using APIFORD.Model.Schedule;
 using APIFORD.Model.User;
 using APIFORD.Model.Workspace;
+using APIFORD.Model.Workspace.Teams;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
@@ -36,6 +37,9 @@ public class FordDbContext : IdentityDbContext<User>
     public DbSet<WorkspaceComentario> WorkspaceComentarios { get; set; }
     public DbSet<WorkspaceCurtida> WorkspaceCurtidas { get; set; }
 
+    public DbSet<Equipe> Equipes { get; set; }
+    public DbSet<EquipeMembro> EquipeMembros { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -52,12 +56,33 @@ public class FordDbContext : IdentityDbContext<User>
             entity.Property(p => p.TipoConteudoVinculado).HasConversion<string>();
             entity.HasMany(p => p.Comentarios).WithOne(c => c.WorkspacePost).HasForeignKey(c => c.WorkspacePostId).OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(p => p.Curtidas).WithOne(c => c.WorkspacePost).HasForeignKey(c => c.WorkspacePostId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Equipe>().WithMany().HasForeignKey(p => p.EquipeId).OnDelete(DeleteBehavior.Cascade);
         });
         builder.Entity<WorkspaceCurtida>(entity =>
             entity.HasIndex(c => new { c.WorkspacePostId, c.UserId }).IsUnique() // trava 1 curtida por pessoa por post, no nível do banco
         );
 
+        // ==========================================
+        // TABELA EQUIPE E MEMBROs
+        // ==========================================
+        builder.Entity<Equipe>(entity =>
+        {
+            entity.ToTable("equipes");
 
+            entity.HasMany(e => e.Membros)
+                .WithOne(m => m.Equipe)
+                .HasForeignKey(m => m.EquipeId)
+                .OnDelete(DeleteBehavior.Cascade); // deleting a team removes its membership rows too
+        });
+
+        builder.Entity<EquipeMembro>(entity =>
+        {
+            entity.ToTable("equipe_membros");
+            entity.Property(m => m.Papel).HasConversion<string>();
+
+            // one membership row per (team, user) — stops the same person being added twice
+            entity.HasIndex(m => new { m.EquipeId, m.UserId }).IsUnique();
+        });
 
 
         // ==========================================
@@ -204,7 +229,13 @@ public class FordDbContext : IdentityDbContext<User>
                 mod.ToJson();
                 mod.OwnsMany(x => x.Fontes);
             });
-            
+
+            // Preço (decimal)
+            entity.OwnsOne(c => c.Preco, preco => {
+                preco.ToJson();
+                preco.OwnsMany(x => x.Fontes);
+            });
+
 
             // === O RESTANTE DA ESTRUTURA ===
 
@@ -251,6 +282,10 @@ public class FordDbContext : IdentityDbContext<User>
                 extras.OwnsOne(e => e.TipoCombustivel, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.CapacidadeCarga, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.CapacidadeReboque, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Conforto, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Segurança, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Tecnoligas, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Performace, b => b.OwnsMany(x => x.Fontes));
             });
 
         });

@@ -14,6 +14,8 @@ public class Carro
     public string ImagemUrl { get; set; } = string.Empty;
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
+    public PropriedadeScraping<decimal> Preco { get; set; }
+
     public  ICollection<ModeloSalvo> SalvoUsuario { get; set; } = new List<ModeloSalvo>();
     public  ICollection<Especificacao> Especificacoes { get; set; } = new List<Especificacao>();
     public  ICollection<Consumo> Consumos { get; set; } = new List<Consumo>();
