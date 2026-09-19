@@ -1,9 +1,10 @@
 ﻿using APIFORD.Data.DTOS.CarrosDto;
+using APIFORD.Data.DTOS.CarrosDto.CarroDTO;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Middleware;
 using APIFORD.Services.CarroServices;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.JSInterop.Implementation;
 using System.Security.Claims;
 using System.Text.Json;
@@ -94,6 +95,12 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
         var carroAtualizado = await _CarroService.EditarPropriedadesAdminAsync(id, alteracoes, ObterUsuarioId());
         return Ok(carroAtualizado);
     }
+
+    [HttpPost("importar-arquivo")]
+    [ProducesResponseType(typeof(ImportacaoResultadoDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ImportarArquivo(IFormFile arquivo)
+    => Ok(await _CarroService.ImportarArquivoAsync(arquivo, ObterUsuarioId()));
 
     [HttpGet("listarPaginado")]
     public async Task<ActionResult<List<ReadCarroDTO>>> Listar([FromQuery] int pagina = 1, [FromQuery] int tamanhoPagina = 20)
