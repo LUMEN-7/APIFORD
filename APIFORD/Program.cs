@@ -175,7 +175,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontEnd", policy =>
-        policy.WithOrigins("https://beyond-compare.vercel.app/") // porta real do front em dev — ajusta se for outra
+        policy.WithOrigins("https://beyond-compare.vercel.app") // porta real do front em dev — ajusta se for outra
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
