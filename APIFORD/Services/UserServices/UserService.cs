@@ -62,7 +62,6 @@ public class UserService
         {
             UserName = dto.Email,
             Email = dto.Email,
-            NomeExibicao = dto.Nome,
             FotoPerfilUrl = dto.FotoPerfilUrl
         };
 
@@ -177,7 +176,7 @@ public class UserService
         {
             var nomeExibicao = !string.IsNullOrWhiteSpace(payload.Name)
             ? payload.Name
-            : payload.Email.Split('@')[0]; // fallback: prefixo do e-mail quando o Google não manda o nome
+            : null; // fallback: prefixo do e-mail quando o Google não manda o nome
 
             user = new User
             {

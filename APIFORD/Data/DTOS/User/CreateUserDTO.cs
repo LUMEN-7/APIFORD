@@ -4,8 +4,6 @@ namespace APIFORD.Data.DTOS.User;
 
 public class CreateUserDTO
 {
-    [Required(ErrorMessage = "O nome é obrigatório.")]
-    public string Nome { get; set; }
 
     [Required(ErrorMessage = "O email é obrigatória.")]
     [EmailAddress]
