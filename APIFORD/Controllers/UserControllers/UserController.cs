@@ -37,10 +37,6 @@ public class UserController : ControllerBase
     //===============
     //   Gets
     //===============
-
-    [HttpGet("ehAdmin")]
-    public async Task<IActionResult> EhAdmin()
-         => Ok(await _userService.EhAdminAsync(ObterUsuarioId));
    
 
 

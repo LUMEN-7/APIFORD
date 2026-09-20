@@ -461,8 +461,4 @@ public class UserService
         }
     }
 
-    public async Task<bool> EhAdminAsync(Func<string> obterUsuarioId)
-    {
-        return _context.Hasro
-    }
 }
