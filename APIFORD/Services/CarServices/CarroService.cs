@@ -240,7 +240,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         novaVersao.DataCriacao = DateTime.UtcNow;
 
         var fonteIdAdmin = await ObterOuCriarFonteAsync($"Edição Manual: {adminEmail}");
-        AplicarAlteracoes(novaVersao, alteracoes, "Edição Manual", fonteId);
+        AplicarAlteracoes(novaVersao, alteracoes, "Edição Manual", fonteIdAdmin);
 
         await DbSet.AddAsync(novaVersao);
         await Context.SaveChangesAsync();
