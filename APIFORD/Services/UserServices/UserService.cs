@@ -263,7 +263,11 @@ public class UserService
     {
         User user = await _userManager.FindByIdAsync(id) ?? throw new NotFoundException("Usuário não encontrado."); ;
 
-        if (dto.NomeExibicao != null) LancarSeIdentityFalhou(await _userManager.SetUserNameAsync(user, dto.NomeExibicao));
+        if (dto.NomeExibicao != null)
+        {
+            user.NomeExibicao = dto.NomeExibicao;
+            LancarSeIdentityFalhou(await _userManager.UpdateAsync(user));
+        }
         
         if (dto.Email != null) LancarSeIdentityFalhou(await _userManager.SetEmailAsync(user, dto.Email)); 
     }
