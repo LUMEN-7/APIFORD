@@ -1,8 +1,10 @@
 ﻿using APIFORD.Data;
 using APIFORD.Data.DTOS.CarrosDto;
+using APIFORD.Data.DTOS.CarrosDto.CarroDTO;
 using APIFORD.Data.DTOS.CarrosDTO.CarroDTO;
 using APIFORD.Middleware;
 using APIFORD.Model.CarroClasses;
+using APIFORD.Services.CarServices;
 using APIFORD.Services.NotificationService;
 using AutoMapper;
 using DocumentFormat.OpenXml.InkML;
@@ -17,15 +19,20 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
     private readonly HelperService _helperService;
     private readonly NotificacaoService _notificacaoService;
     private readonly IImportadorArquivoService _importadorService;
+    private readonly ImportacaoCarroService _importacaoService;
+    private readonly FonteService _fonteService;
     private readonly FordDbContext _context;
 
     public CarroService(FordDbContext context, IMapper mapper, HelperService helperService,
-        NotificacaoService notificacaoService, IImportadorArquivoService importadorService)
+        NotificacaoService notificacaoService, IImportadorArquivoService importadorService,
+        ImportacaoCarroService importacaoService, FonteService fonteService)
         : base(context, mapper)
     {
         _helperService = helperService;
         _notificacaoService = notificacaoService;
         _importadorService = importadorService;
+        _importacaoService = importacaoService;
+        _fonteService = fonteService;
         _context = context;
     }
 
@@ -40,139 +47,6 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         // Aqui nós chamamos a versão do método que aceita Listas!
         // Ele vai varrer todos os carros, ir ao banco uma vez só, e distribuir as fontes.
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dtos, entities);
-    }
-
-    private static readonly Dictionary<string, Func<Carro, object>> ColecoesAninhadas = new()
-    {
-        ["Especificacao"] = c => c.Especificacoes,
-        ["Consumo"] = c => c.Consumos,
-        ["Dimensao"] = c => c.Dimensoes,
-        ["Pneu"] = c => c.Pneus,
-        ["Extra"] = c => c.Extras,
-    };
-
-    private async Task<int> ObterOuCriarFonteAsync(string nomeFonte)
-    {
-        var fonteExistente = await _context.Fontes.FirstOrDefaultAsync(f => f.Nome == nomeFonte);
-        if (fonteExistente != null) return fonteExistente.Id;
-
-        var novaFonte = new Fonte { Nome = nomeFonte };
-        await _context.Fontes.AddAsync(novaFonte);
-        await _context.SaveChangesAsync();
-        return novaFonte.Id;
-    }
-
-
-    private bool AplicarValorNaPropriedade(object alvo, PropertyInfo property, object valorBruto, string fonte, int fonteId)
-    {
-        bool isEnvelope = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(PropriedadeScraping<>);
-        var targetType = isEnvelope ? property.PropertyType.GetGenericArguments()[0] : property.PropertyType;
-
-        object valorLimpo;
-        try
-        {
-            if (valorBruto is Newtonsoft.Json.Linq.JToken jToken) valorLimpo = jToken.ToObject(targetType);
-            else if (valorBruto is System.Text.Json.JsonElement jsonElement) valorLimpo = jsonElement.Deserialize(targetType);
-            else valorLimpo = Convert.ChangeType(valorBruto, targetType);
-        }
-        catch { return false; }
-
-        if (isEnvelope)
-        {
-            var tipoInterno = property.PropertyType.GetGenericArguments()[0];
-            object envelope = property.GetValue(alvo) ?? Activator.CreateInstance(property.PropertyType)!;
-
-            var novaFonteType = typeof(ItemFonteScraping<>).MakeGenericType(tipoInterno);
-            object novaFonte = Activator.CreateInstance(novaFonteType)!;
-
-            novaFonteType.GetProperty("Valor")!.SetValue(novaFonte, valorLimpo);
-
-            var confiancaProperty = novaFonteType.GetProperty("Confianca")!;
-            var confiancaValue = Convert.ChangeType(1.0m, confiancaProperty.PropertyType);
-            confiancaProperty.SetValue(novaFonte, confiancaValue);
-            
-            novaFonteType.GetProperty("Fonte")!.SetValue(novaFonte, fonte);
-            novaFonteType.GetProperty("FonteId")!.SetValue(novaFonte, fonteId);
-
-            var envelopeType = property.PropertyType;
-            var fontesProp = envelopeType.GetProperty("Fontes")!;
-            var listaFontes = fontesProp.GetValue(envelope);
-
-            if (listaFontes == null)
-            {
-                listaFontes = Activator.CreateInstance(typeof(List<>).MakeGenericType(novaFonteType))!;
-                fontesProp.SetValue(envelope, listaFontes);
-            }
-
-            ((System.Collections.IList)listaFontes).Add(novaFonte);
-            envelopeType.GetProperty("Conflito")!.SetValue(envelope, false);
-
-            property.SetValue(alvo, envelope);
-        }
-        else
-        {
-            property.SetValue(alvo, valorLimpo);
-        }
-        return true;
-    }
-
-    private List<string> AplicarAlteracoes(Carro carro, Dictionary<string, object> alteracoes, string fonte, int fonteId)
-    {
-        var naoAplicados = new List<string>();
-        foreach (var alteracao in alteracoes)
-        {
-            var (alvo, property) = LocalizarPropriedade(carro, alteracao.Key);
-            if (property == null) { naoAplicados.Add(alteracao.Key); continue; }
-
-            if (!AplicarValorNaPropriedade(alvo, property, alteracao.Value, fonte, fonteId))
-                naoAplicados.Add(alteracao.Key);
-        }
-        return naoAplicados;
-    }
-
-    private (object alvo, PropertyInfo? property) LocalizarPropriedade(Carro carro, string nomePropriedade)
-    {
-        // 1) tenta direto em Carro (Modelo, Marca, Ano, ImagemUrl, Categoria, Modos)
-        var direta = typeof(Carro).GetProperty(nomePropriedade, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-        if (direta != null) return (carro, direta);
-
-        // 2) procura nas 5 coleções aninhadas (Potencia -> Especificacao, Cidade -> Consumo, etc.)
-        foreach (var (tipoNome, getColecao) in ColecoesAninhadas)
-        {
-            var tipoItem = tipoNome switch
-            {
-                "Especificacao" => typeof(Especificacao),
-                "Consumo" => typeof(Consumo),
-                "Dimensao" => typeof(Dimensao),
-                "Pneu" => typeof(Pneu),
-                "Extra" => typeof(Extra),
-                _ => null
-            };
-            var prop = tipoItem?.GetProperty(nomePropriedade, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-            if (prop == null) continue;
-
-            dynamic colecao = getColecao(carro);
-            if (colecao.Count == 0)
-            {
-                dynamic novoItem = Activator.CreateInstance(tipoItem)!;
-                colecao.Add(novoItem);
-            }
-            return (colecao[0], prop); // assume 1 item ativo por carro/versão — ver ressalva abaixo
-        }
-
-        return (carro, null);
-    }
-
-    private async Task<int> ResolverLinhagemIdAsync(string marca, string modelo, int ano)
-    {
-        var existente = await DbSet
-            .Where(c => c.Marca.Trim().ToLower() == marca.Trim().ToLower()
-                     && c.Modelo.Trim().ToLower() == modelo.Trim().ToLower()
-                     && c.Ano == ano)
-            .OrderByDescending(c => c.Id)
-            .FirstOrDefaultAsync();
-
-        return existente?.LinhagemId ?? 0; // 0 = sinal temporário de "carro novo"; vira o Id real logo abaixo
     }
 
     public async Task<List<ReadCarroDTO>> ListarMaisRecentesAsync(int pagina, int tamanhoPagina)
@@ -240,8 +114,8 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         novaVersao.VersaoAnteriorId = carroOriginal.Id;
         novaVersao.DataCriacao = DateTime.UtcNow;
 
-        var fonteIdAdmin = await ObterOuCriarFonteAsync($"Edição Manual: {adminEmail}");
-        AplicarAlteracoes(novaVersao, alteracoes, "Edição Manual", fonteIdAdmin);
+        var fonteIdAdmin = await _fonteService.ObterOuCriarFonteAsync($"Edição Manual: {adminEmail}");
+        _importacaoService.AplicarAlteracoes(novaVersao, alteracoes, "Edição Manual", fonteIdAdmin);
 
         await DbSet.AddAsync(novaVersao);
         await Context.SaveChangesAsync();
@@ -253,7 +127,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
     }
 
 
-    public async Task<ReadCarroDTO> ImportarArquivoAsync(IFormFile arquivo, string userId)
+    public async Task<ImportacaoResultadoDTO> ImportarArquivoAsync(IFormFile arquivo, string userId)
     {
         if (arquivo == null || arquivo.Length == 0)
             throw new BadRequestException("Nenhum arquivo enviado.");
@@ -276,26 +150,30 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         var ano = Convert.ToInt32(anoObj);
 
         var carro = new Carro { Marca = marca, Modelo = modelo, Ano = ano, DataCriacao = DateTime.UtcNow };
-        carro.LinhagemId = await ResolverLinhagemIdAsync(marca, modelo, ano);
+        carro.LinhagemId = await _importacaoService.ResolverLinhagemIdAsync(marca, modelo, ano);
 
         var resto = dados.Where(kv => kv.Key is not ("marca" or "modelo" or "ano")).ToDictionary(kv => kv.Key, kv => kv.Value);
-        var fonteId = await ObterOuCriarFonteAsync($"Importação: {arquivo.FileName}");
+        var fonteId = await _fonteService.ObterOuCriarFonteAsync($"Importação: {arquivo.FileName}");
 
-        var naoAplicados = AplicarAlteracoes(carro, resto, "Importação de Arquivo", fonteId);
+        var naoAplicados = _importacaoService.AplicarAlteracoes(carro, resto, "Importação de Arquivo", fonteId);
 
         await DbSet.AddAsync(carro);
-        await Context.SaveChangesAsync(); // gera o Id
+        await Context.SaveChangesAsync();
 
         if (carro.LinhagemId == 0)
         {
-            carro.LinhagemId = carro.Id; // primeira versão dessa linhagem
+            carro.LinhagemId = carro.Id;
             await Context.SaveChangesAsync();
         }
 
-
         var readDto = Mapper.Map<ReadCarroDTO>(carro);
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carro);
-        return readDto;
+
+        return new ImportacaoResultadoDTO
+        {
+            Carro = readDto,
+            ColunasNaoReconhecidas = naoAplicados,
+        };
     }
 
     public async Task<(ReadCarroDTO Carro, bool HouveMudanca)> AtualizarCarroComNovosDadosAsync(int carroExistenteId, Carro carroComDadosNovos)

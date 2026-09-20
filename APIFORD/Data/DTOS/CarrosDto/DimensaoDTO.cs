@@ -7,4 +7,7 @@ public record DimensaoDTO(
     [Required] PropriedadeScrapingDTO<decimal> Largura,
     [Required] PropriedadeScrapingDTO<decimal> Altura,
     [Required] PropriedadeScrapingDTO<decimal> EntreEixos
-);
+)
+{
+    public DimensaoDTO() : this(default!, default!, default!, default!) { }
+}

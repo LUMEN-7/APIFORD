@@ -283,8 +283,8 @@ public class FordDbContext : IdentityDbContext<User>
                 extras.OwnsOne(e => e.CapacidadeCarga, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.CapacidadeReboque, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.Conforto, b => b.OwnsMany(x => x.Fontes));
-                extras.OwnsOne(e => e.Segurança, b => b.OwnsMany(x => x.Fontes));
-                extras.OwnsOne(e => e.Tecnoligas, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Seguranca, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Tecnologia, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.Performace, b => b.OwnsMany(x => x.Fontes));
             });
 

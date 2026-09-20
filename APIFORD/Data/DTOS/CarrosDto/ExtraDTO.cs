@@ -12,4 +12,7 @@ public record ExtraDTO(
        [Required] PropriedadeScrapingDTO<string> Seguranca,
        [Required] PropriedadeScrapingDTO<string> Performace
 
-);
+)
+{
+    public ExtraDTO() : this(default!, default!, default!, default!, default!, default!, default!, default!) { }
+};

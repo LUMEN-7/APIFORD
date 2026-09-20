@@ -7,4 +7,7 @@ public record PneuDTO(
     [ Required] PropriedadeScrapingDTO<int> Aro,
     [ Required] PropriedadeScrapingDTO<int> Largura,
     [ Required] PropriedadeScrapingDTO<int> Perfil
-);
+)
+{
+    public PneuDTO() : this(default!, default!, default!, default!) { }
+};

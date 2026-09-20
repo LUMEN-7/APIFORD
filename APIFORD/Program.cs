@@ -64,33 +64,32 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
-}).AddJwtBearer(options =>
-    {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
-        ValidateAudience = false,
-        ValidateIssuer = false,
-        ClockSkew = TimeSpan.Zero,
-    };
-
-    // O handshake WebSocket do SignalR não manda header Authorization,
-    // então o front precisa mandar o token assim: /hubs/notificacao?access_token=SEU_TOKEN
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
+})
+    .AddJwtBearer(options =>{
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            var accessToken = context.Request.Query["access_token"];
-            if (!string.IsNullOrEmpty(accessToken) &&
-                context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
-            {
-                context.Token = accessToken;
-            }
-            return Task.CompletedTask;
-        }
-    };
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey)),
+            ValidateAudience = false,
+            ValidateIssuer = false,
+            ClockSkew = TimeSpan.Zero,
+        };
 
+        // O handshake WebSocket do SignalR não manda header Authorization,
+        // então o front precisa mandar o token assim: /hubs/notificacao?access_token=SEU_TOKEN
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
  });
 
 // Politicas de autorização customizadas, caso queira usar. Exemplo de política de idade minima, onde o requisito é ter mais de 18 anos para acessar determinado recurso.
@@ -157,7 +156,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<FordDbContext>(options =>
     options.UseNpgsql(connectionString)
-           .UseSnakeCaseNamingConvention());
+           .UseSnakeCaseNamingConvention()
+           .EnableSensitiveDataLogging());
 
 builder.Services.AddResponseCompression(options =>
 {
@@ -175,7 +175,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontEnd", policy =>
-        policy.WithOrigins("https://beyond-compare.vercel.app") // porta real do front em dev — ajusta se for outra
+        policy.WithOrigins("http://localhost:5173", "https://beyond-compare.vercel.app") // porta real do front em dev — ajusta se for outra
               .AllowAnyHeader()
               .AllowAnyMethod());
 });

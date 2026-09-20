@@ -9,4 +9,7 @@ public record EspecificacaoDTO(
     [Required] PropriedadeScrapingDTO<int> TorqueRpm,
     [Required] PropriedadeScrapingDTO<string> Transmissao,
     [Required] PropriedadeScrapingDTO<string> Tracao
-);
+)
+{
+    public EspecificacaoDTO() : this(default!, default!, default!, default!, default!, default!) { }
+}

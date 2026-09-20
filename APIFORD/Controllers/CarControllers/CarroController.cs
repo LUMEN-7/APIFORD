@@ -106,7 +106,7 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
     [HttpPost("importar-arquivo")]
     [ProducesResponseType(typeof(ImportacaoResultadoDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ImportarArquivo(IFormFile arquivo)
+    public async Task<ActionResult<ImportacaoResultadoDTO>> ImportarArquivo(IFormFile arquivo)
     => Ok(await _CarroService.ImportarArquivoAsync(arquivo, ObterUsuarioId()));
 
     [HttpGet("listarPaginado")]
