@@ -61,26 +61,35 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
             else if (valorBruto is System.Text.Json.JsonElement jsonElement) valorLimpo = jsonElement.Deserialize(targetType);
             else valorLimpo = Convert.ChangeType(valorBruto, targetType);
         }
-        catch { return false; } // valor incompatível com o tipo da propriedade — ignora, igual ao comportamento original
+        catch { return false; }
 
         if (isEnvelope)
         {
             var tipoInterno = property.PropertyType.GetGenericArguments()[0];
-            dynamic envelope = property.GetValue(alvo) ?? Activator.CreateInstance(property.PropertyType)!;
+            object envelope = property.GetValue(alvo) ?? Activator.CreateInstance(property.PropertyType)!;
 
             var novaFonteType = typeof(ItemFonteScraping<>).MakeGenericType(tipoInterno);
-            dynamic novaFonte = Activator.CreateInstance(novaFonteType)!;
-            novaFonte.Valor = valorLimpo;
-            novaFonte.Confianca = 1.0m;
-            novaFonte.Fonte = fonte;
-            novaFonte.FonteId = fonteId;
+            object novaFonte = Activator.CreateInstance(novaFonteType)!;
 
-            if (envelope.Fontes == null)
-                envelope.Fontes = Activator.CreateInstance(typeof(List<>).MakeGenericType(novaFonteType));
-            envelope.Fontes.Add((object)novaFonte);
-            envelope.Conflito = false;
+            novaFonteType.GetProperty("Valor")!.SetValue(novaFonte, valorLimpo);
+            novaFonteType.GetProperty("Confianca")!.SetValue(novaFonte, 1.0m);
+            novaFonteType.GetProperty("Fonte")!.SetValue(novaFonte, fonte);
+            novaFonteType.GetProperty("FonteId")!.SetValue(novaFonte, fonteId);
 
-            property.SetValue(alvo, (object)envelope);
+            var envelopeType = property.PropertyType;
+            var fontesProp = envelopeType.GetProperty("Fontes")!;
+            var listaFontes = fontesProp.GetValue(envelope);
+
+            if (listaFontes == null)
+            {
+                listaFontes = Activator.CreateInstance(typeof(List<>).MakeGenericType(novaFonteType))!;
+                fontesProp.SetValue(envelope, listaFontes);
+            }
+
+            ((System.Collections.IList)listaFontes).Add(novaFonte);
+            envelopeType.GetProperty("Conflito")!.SetValue(envelope, false);
+
+            property.SetValue(alvo, envelope);
         }
         else
         {
