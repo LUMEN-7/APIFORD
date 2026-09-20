@@ -34,6 +34,13 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
             throw new UnauthorizedException("Não foi possível identificar o usuário autenticado.");
         return id;
     }
+    protected string ObterUsuarioEmail()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        if (string.IsNullOrEmpty(email))
+            throw new UnauthorizedException("Não foi possível identificar o usuário");
+        return email;
+    }
 
     /// <summary>
     /// Retorna a versão mais recente de um veículo dentro de uma linhagem
@@ -92,7 +99,7 @@ public class CarroController : BaseController<Model.CarroClasses.Carro, CreateCa
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EditarPropriedades(int id, [FromBody] Dictionary<string, object> alteracoes)
     {
-        var carroAtualizado = await _CarroService.EditarPropriedadesAdminAsync(id, alteracoes, ObterUsuarioId());
+        var carroAtualizado = await _CarroService.EditarPropriedadesAdminAsync(id, alteracoes, ObterUsuarioEmail());
         return Ok(carroAtualizado);
     }
 

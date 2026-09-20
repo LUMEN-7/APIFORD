@@ -5,6 +5,7 @@ using APIFORD.Middleware;
 using APIFORD.Model.CarroClasses;
 using APIFORD.Services.NotificationService;
 using AutoMapper;
+using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using System.Text.Json;
@@ -16,6 +17,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
     private readonly HelperService _helperService;
     private readonly NotificacaoService _notificacaoService;
     private readonly IImportadorArquivoService _importadorService;
+    private readonly FordDbContext _context;
 
     public CarroService(FordDbContext context, IMapper mapper, HelperService helperService,
         NotificacaoService notificacaoService, IImportadorArquivoService importadorService)
@@ -48,8 +50,19 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         ["Extra"] = c => c.Extras,
     };
 
+    private async Task<int> ObterOuCriarFonteAsync(string nomeFonte)
+    {
+        var fonteExistente = await _context.Fontes.FirstOrDefaultAsync(f => f.Nome == nomeFonte);
+        if (fonteExistente != null) return fonteExistente.Id;
 
-    private bool AplicarValorNaPropriedade(object alvo, PropertyInfo property, object valorBruto, string fonte, string? fonteId)
+        var novaFonte = new Fonte { Nome = nomeFonte };
+        await _context.Fontes.AddAsync(novaFonte);
+        await _context.SaveChangesAsync();
+        return novaFonte.Id;
+    }
+
+
+    private bool AplicarValorNaPropriedade(object alvo, PropertyInfo property, object valorBruto, string fonte, int fonteId)
     {
         bool isEnvelope = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(PropriedadeScraping<>);
         var targetType = isEnvelope ? property.PropertyType.GetGenericArguments()[0] : property.PropertyType;
@@ -102,7 +115,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         return true;
     }
 
-    private List<string> AplicarAlteracoes(Carro carro, Dictionary<string, object> alteracoes, string fonte, string? fonteId)
+    private List<string> AplicarAlteracoes(Carro carro, Dictionary<string, object> alteracoes, string fonte, int fonteId)
     {
         var naoAplicados = new List<string>();
         foreach (var alteracao in alteracoes)
@@ -212,7 +225,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         return readCarroDto;
     }
 
-    public async Task<ReadCarroDTO> EditarPropriedadesAdminAsync(int carroId, Dictionary<string, object> alteracoes, string adminId)
+    public async Task<ReadCarroDTO> EditarPropriedadesAdminAsync(int carroId, Dictionary<string, object> alteracoes, string adminEmail)
     {
         if (alteracoes == null || alteracoes.Count == 0)
             throw new BadRequestException("Nenhuma alteração enviada no payload.");
@@ -226,7 +239,8 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         novaVersao.VersaoAnteriorId = carroOriginal.Id;
         novaVersao.DataCriacao = DateTime.UtcNow;
 
-        AplicarAlteracoes(novaVersao, alteracoes, "Edição Manual", adminId);
+        var fonteIdAdmin = await ObterOuCriarFonteAsync($"Edição Manual: {adminEmail}");
+        AplicarAlteracoes(novaVersao, alteracoes, "Edição Manual", fonteId);
 
         await DbSet.AddAsync(novaVersao);
         await Context.SaveChangesAsync();
@@ -264,7 +278,9 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         carro.LinhagemId = await ResolverLinhagemIdAsync(marca, modelo, ano);
 
         var resto = dados.Where(kv => kv.Key is not ("marca" or "modelo" or "ano")).ToDictionary(kv => kv.Key, kv => kv.Value);
-        var naoAplicados = AplicarAlteracoes(carro, resto, "Importação de Arquivo", userId);
+        var fonteId = await ObterOuCriarFonteAsync($"Importação: {arquivo.FileName}");
+
+        var naoAplicados = AplicarAlteracoes(carro, resto, "Importação de Arquivo", fonteId);
 
         await DbSet.AddAsync(carro);
         await Context.SaveChangesAsync(); // gera o Id
