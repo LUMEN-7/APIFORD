@@ -72,7 +72,11 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
             object novaFonte = Activator.CreateInstance(novaFonteType)!;
 
             novaFonteType.GetProperty("Valor")!.SetValue(novaFonte, valorLimpo);
-            novaFonteType.GetProperty("Confianca")!.SetValue(novaFonte, 1.0m);
+
+            var confiancaProperty = novaFonteType.GetProperty("Confianca")!;
+            var confiancaValue = Convert.ChangeType(1.0m, confiancaProperty.PropertyType);
+            confiancaProperty.SetValue(novaFonte, confiancaValue);
+            
             novaFonteType.GetProperty("Fonte")!.SetValue(novaFonte, fonte);
             novaFonteType.GetProperty("FonteId")!.SetValue(novaFonte, fonteId);
 
