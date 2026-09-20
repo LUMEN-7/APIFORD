@@ -460,4 +460,9 @@ public class UserService
             await _userManager.UpdateAsync(user);
         }
     }
+
+    public async Task<bool> EhAdminAsync(Func<string> obterUsuarioId)
+    {
+        return _context.Hasro
+    }
 }

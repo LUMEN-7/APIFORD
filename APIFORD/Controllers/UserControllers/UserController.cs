@@ -38,6 +38,11 @@ public class UserController : ControllerBase
     //   Gets
     //===============
 
+    [HttpGet("ehAdmin")]
+    public async Task<IActionResult> EhAdmin()
+         => Ok(await _userService.EhAdminAsync(ObterUsuarioId));
+   
+
 
     /// <summary>
     /// Recupera a lista de todos os usuários cadastrados no sistema.

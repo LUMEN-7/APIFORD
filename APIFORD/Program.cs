@@ -189,6 +189,17 @@ using (var scope = app.Services.CreateScope())
 {
     var armazenamento = scope.ServiceProvider.GetRequiredService<IArmazenamentoService>();
     await armazenamento.GarantirBucketExisteAsync();
+
+    // seed, uma vez (Program.cs no startup, ou um endpoint temporário de admin)
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    if (!await roleManager.RoleExistsAsync("Admin"))
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var admin = await userManager.FindByEmailAsync("geronimoaugustonsanto@gmail.com");
+    if (admin != null && !await userManager.IsInRoleAsync(admin, "Admin"))
+        await userManager.AddToRoleAsync(admin, "Admin");
+
 }
 
 app.UseHttpsRedirection();
