@@ -26,6 +26,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         _helperService = helperService;
         _notificacaoService = notificacaoService;
         _importadorService = importadorService;
+        _context = context;
     }
 
     private readonly JsonSerializerOptions _jsonOptions = new()
