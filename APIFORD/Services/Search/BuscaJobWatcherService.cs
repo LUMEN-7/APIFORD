@@ -8,7 +8,7 @@ public class BuscaJobWatcherService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<BuscaJobWatcherService> _logger;
-    private static readonly TimeSpan Intervalo = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan Intervalo = TimeSpan.FromSeconds(3600);
 
     public BuscaJobWatcherService(IServiceScopeFactory scopeFactory, ILogger<BuscaJobWatcherService> logger)
     {
