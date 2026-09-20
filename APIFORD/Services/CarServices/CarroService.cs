@@ -250,7 +250,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         var carro = new Carro { Marca = marca, Modelo = modelo, Ano = ano, DataCriacao = DateTime.UtcNow };
         carro.LinhagemId = await ResolverLinhagemIdAsync(marca, modelo, ano);
 
-        var resto = dados.Where(kv => kv.Key is not ("Marca" or "Modelo" or "Ano")).ToDictionary(kv => kv.Key, kv => kv.Value);
+        var resto = dados.Where(kv => kv.Key is not ("marca" or "modelo" or "ano")).ToDictionary(kv => kv.Key, kv => kv.Value);
         var naoAplicados = AplicarAlteracoes(carro, resto, "Importação de Arquivo", userId);
 
         await DbSet.AddAsync(carro);
