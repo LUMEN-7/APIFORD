@@ -240,7 +240,7 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
             _ => throw new BadRequestException($"Formato '{extensao}' não suportado. Use CSV, JSON, XLSX ou XML.")
         };
 
-        if (!dados.TryGetValue("Marca", out var marcaObj) || !dados.TryGetValue("Modelo", out var modeloObj) || !dados.TryGetValue("Ano", out var anoObj))
+        if (!dados.TryGetValue("marca", out var marcaObj) || !dados.TryGetValue("modelo", out var modeloObj) || !dados.TryGetValue("ano", out var anoObj))
             throw new BadRequestException("O arquivo precisa conter, no mínimo, Marca, Modelo e Ano.");
 
         var marca = marcaObj.ToString()!;
