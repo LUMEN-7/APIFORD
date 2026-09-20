@@ -196,7 +196,7 @@ using (var scope = app.Services.CreateScope())
         await roleManager.CreateAsync(new IdentityRole("Admin"));
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var admin = await userManager.FindByEmailAsync("geronimoaugustonsanto@gmail.com");
+    var admin = await userManager.FindByEmailAsync("geronimoaugustonsantos@gmail.com");
     if (admin != null && !await userManager.IsInRoleAsync(admin, "Admin"))
         await userManager.AddToRoleAsync(admin, "Admin");
 
