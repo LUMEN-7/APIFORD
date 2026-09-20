@@ -103,7 +103,7 @@ public class UserService
     private async Task<UsuarioResumoDTO> MontarResumoAsync(User user) => new()
     {
         Id = user.Id,
-        UserName = user.UserName,
+        NomeExibicao = user.NomeExibicao,
         Email = user.Email,
         Name = user.NomeExibicao,
         FotoPerfilUrl = user.FotoPerfilUrl,
