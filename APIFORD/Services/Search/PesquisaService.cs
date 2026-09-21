@@ -28,6 +28,8 @@ public class PesquisaService
     private readonly NotificacaoService _notificacaoService;
     private readonly CarroService _carroService;
 
+    private string GetPythonServiceUrl() => Environment.GetEnvironmentVariable("Python:Url"); 
+
     private static bool EstaFresco(Carro carro)
     {
         var idade = DateTime.UtcNow - carro.DataCriacao;
@@ -93,7 +95,8 @@ public class PesquisaService
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
     {
-        var response = await _httpClient.PostAsJsonAsync("http://127.0.0.1:8000/specs", dto);
+
+        var response = await _httpClient.PostAsJsonAsync(GetPythonServiceUrl(), dto);
 
         if (!response.IsSuccessStatusCode)
             throw new ServiceUnavailableException("Microserviço Python indisponível.");
@@ -117,7 +120,7 @@ public class PesquisaService
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto)
     {
-        var response = await _httpClient.PostAsJsonAsync("http://127.0.0.1:8000/specs", dto);
+        var response = await _httpClient.PostAsJsonAsync(GetPythonServiceUrl(), dto);
 
         if (!response.IsSuccessStatusCode)
             throw new ServiceUnavailableException("Microserviço Python indisponível.");

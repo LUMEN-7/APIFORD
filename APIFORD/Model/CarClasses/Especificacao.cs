@@ -12,6 +12,7 @@ public class Especificacao
     public PropriedadeScraping<int> PotenciaRpm { get; set; } = new();
     public PropriedadeScraping<int> TorqueRpm { get; set; } = new();
     public PropriedadeScraping<string> Transmissao { get; set; } = new();
+    public PropriedadeScraping<string> Motor { get; set; } = new();
     public PropriedadeScraping<string> Tracao { get; set; } = new();
 
 }

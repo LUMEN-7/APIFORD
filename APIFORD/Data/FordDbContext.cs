@@ -247,6 +247,12 @@ public class FordDbContext : IdentityDbContext<User>
                 preco.ToJson();
                 preco.OwnsMany(x => x.Fontes);
             });
+            // Descricão (string)
+            entity.OwnsOne(c => c.Descricao, desc =>
+            {
+                desc.ToJson();
+                desc.OwnsMany(x => x.Fontes);
+            });
 
 
             // === O RESTANTE DA ESTRUTURA ===
@@ -260,6 +266,7 @@ public class FordDbContext : IdentityDbContext<User>
                 specs.OwnsOne(e => e.TorqueRpm, b => b.OwnsMany(x => x.Fontes));
                 specs.OwnsOne(e => e.Transmissao, b => b.OwnsMany(x => x.Fontes));
                 specs.OwnsOne(e => e.Tracao, b => b.OwnsMany(x => x.Fontes));
+                specs.OwnsOne(e => e.Motor, b => b.OwnsMany(x => x.Fontes));
             });
 
             entity.OwnsMany(c => c.Consumos, consumos =>
@@ -297,7 +304,7 @@ public class FordDbContext : IdentityDbContext<User>
                 extras.OwnsOne(e => e.Conforto, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.Seguranca, b => b.OwnsMany(x => x.Fontes));
                 extras.OwnsOne(e => e.Tecnologia, b => b.OwnsMany(x => x.Fontes));
-                extras.OwnsOne(e => e.Performace, b => b.OwnsMany(x => x.Fontes));
+                extras.OwnsOne(e => e.Performance, b => b.OwnsMany(x => x.Fontes));
             });
 
         });

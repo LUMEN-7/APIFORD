@@ -16,6 +16,7 @@ public record CreateCarroDTO(
     [ Url(ErrorMessage = "URL de imagem inválida.")] string? ImagemUrl,
 
     PropriedadeScrapingDTO<decimal> Preco,
+    PropriedadeScrapingDTO<string> Descricao,
 
     List<EspecificacaoDTO>? Especificacoes = null,
     List<ConsumoDTO>? Consumos = null,

@@ -10,7 +10,7 @@ public record ExtraDTO(
      [Required] PropriedadeScrapingDTO<string> Conforto,
       [Required] PropriedadeScrapingDTO<string> Tecnologia,
        [Required] PropriedadeScrapingDTO<string> Seguranca,
-       [Required] PropriedadeScrapingDTO<string> Performace
+       [Required] PropriedadeScrapingDTO<string> Performance
 
 )
 {

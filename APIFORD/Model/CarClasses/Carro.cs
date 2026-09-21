@@ -10,6 +10,7 @@ public class Carro
     public int Ano { get; set; }
     public bool Excluido { get; set; } = false;
     public int LinhagemId { get; set; }
+    public PropriedadeScraping<string> Descricao { get; set; }
     public int? VersaoAnteriorId { get; set; }
     public string ImagemUrl { get; set; } = string.Empty;
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
