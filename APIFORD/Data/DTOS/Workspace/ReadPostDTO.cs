@@ -4,7 +4,7 @@ namespace APIFORD.Data.DTOS.Workspace;
 
 public class ReadPostDTO
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
     public AutorResumoDTO Autor { get; set; } = null!;
     public TipoPost Tipo { get; set; }
     public string Conteudo { get; set; } = string.Empty;

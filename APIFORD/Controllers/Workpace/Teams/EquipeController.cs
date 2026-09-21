@@ -39,6 +39,7 @@ public class EquipeController : ControllerBase
     public async Task<ActionResult<List<ReadEquipeDTO>>> ListarMinhas()
         => Ok(await _equipeService.ListarMinhasAsync(ObterUsuarioId()));
 
+
     [HttpGet("{id}/membros")] // getTeamWorkers
     public async Task<ActionResult<List<ReadMembroDTO>>> ListarMembros(int id)
         => Ok(await _equipeService.ListarMembrosAsync(id, ObterUsuarioId()));

@@ -4,7 +4,7 @@ namespace APIFORD.Model.Workspace;
 
 public class WorkspacePost
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
     public string AutorUserId { get; set; } = string.Empty;
     public TipoPost Tipo { get; set; }
     public string Conteudo { get; set; } = string.Empty;

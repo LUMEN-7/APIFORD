@@ -39,6 +39,7 @@ public class FordDbContext : IdentityDbContext<User>
 
     public DbSet<Equipe> Equipes { get; set; }
     public DbSet<EquipeMembro> EquipeMembros { get; set; }
+    public DbSet<AtividadeWorkspace> AtividadesWorkspace { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -63,7 +64,7 @@ public class FordDbContext : IdentityDbContext<User>
         );
 
         // ==========================================
-        // TABELA EQUIPE E MEMBROs
+        // TABELA EQUIPE E MEMBROS E ATIVIDADES
         // ==========================================
         builder.Entity<Equipe>(entity =>
         {
@@ -85,7 +86,16 @@ public class FordDbContext : IdentityDbContext<User>
             // one membership row per (team, user) — stops the same person being added twice
             entity.HasIndex(m => new { m.EquipeId, m.UserId }).IsUnique();
         });
+        builder.Entity<AtividadeWorkspace>(entity =>
+        {
+            entity.ToTable("atividades_workspace");
+            entity.Property(a => a.Tipo).HasConversion<string>();
 
+            entity.HasOne<WorkspacePost>()
+                .WithMany()
+                .HasForeignKey(a => a.PostId)
+                .OnDelete(DeleteBehavior.SetNull); // preserva a atividade mesmo depois do post sumir
+        });
 
         // ==========================================
         // TABELA NOTIFICACOES

@@ -107,6 +107,8 @@ public class EquipeService
         return resultado;
     }
 
+    
+
     public async Task AdicionarMembroAsync(int equipeId, string novoUserId, string userIdSolicitante)
     {
         await GarantirAdministradorAsync(equipeId, userIdSolicitante);

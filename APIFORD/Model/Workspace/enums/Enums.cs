@@ -3,3 +3,13 @@
 public enum TipoPost { Atualizacao, Insight, Revisao, Decisao, Comparacao }
 public enum StatusAtividade { Pendente, EmAnalise, Resolvido }
 public enum TipoConteudoVinculado { Pesquisa, Comparacao, AnaliseIA, Veiculo }
+
+public enum TipoAtividade
+{
+    PostCriado,
+    Atribuicao,
+    StatusAlterado,
+    Comentario,
+    PostFixado,
+    PostDesafixado
+}

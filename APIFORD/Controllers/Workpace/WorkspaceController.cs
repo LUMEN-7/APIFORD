@@ -47,6 +47,10 @@ public class WorkspaceController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{equipeId}/atividades")]
+    public async Task<ActionResult<List<ReadAtividadeDTO>>> ListarAtividades(int equipeId)
+    => Ok(await _workspaceService.ListarAtividadesAsync(equipeId, ObterUsuarioId()));
+
     [HttpPatch("posts/{id}/status")]
     public async Task<IActionResult> AtualizarStatus(int id, [FromBody] AtualizarStatusDTO dto)
     {

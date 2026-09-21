@@ -4,6 +4,7 @@ using APIFORD.Model.User;
 using APIFORD.Model.Workspace;
 using APIFORD.Model.Workspace.enums;
 using APIFORD.Services.Workspace.Teams;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,7 @@ public class WorkspaceService
         _equipeService = equipeService;
     }
 
-    private static readonly TipoPost[] TiposComStatus = { TipoPost.Revisao, TipoPost.Decisao };
+    private static readonly TipoPost[] TiposComStatus = { TipoPost.Revisao};
 
     public async Task<ReadPostDTO> CriarPostAsync(int equipeId, string userId, CriarPostDTO dto)
     {
@@ -45,7 +46,27 @@ public class WorkspaceService
 
         await _context.WorkspacePosts.AddAsync(post);
         await _context.SaveChangesAsync();
-        return await ResolverPostAsync(post, userId, new Dictionary<string, AutorResumoDTO>());
+            var  postR = await ResolverPostAsync(post, userId, new Dictionary<string, AutorResumoDTO>());
+
+        await RegistrarAtividadeAsync(equipeId, TipoAtividade.PostCriado, post.Id, userId);
+
+        if (postR.Responsavel?.UserId != null)
+            await RegistrarAtividadeAsync(equipeId, TipoAtividade.Atribuicao, postR.Id, userId, alvoUserId: postR.Responsavel.UserId);
+        return postR;
+    }
+
+    private async Task RegistrarAtividadeAsync(int equipeId, TipoAtividade tipo, int? postId, string atorUserId, string? alvoUserId = null, string? statusNovo = null)
+    {
+        await _context.AtividadesWorkspace.AddAsync(new AtividadeWorkspace
+        {
+            EquipeId = equipeId,
+            Tipo = tipo,
+            PostId = postId,
+            AtorUserId = atorUserId,
+            AlvoUserId = alvoUserId,
+            StatusNovo = statusNovo,
+        });
+        await _context.SaveChangesAsync();
     }
 
     public async Task<List<ReadPostDTO>> ListarAsync(int equipeId, string userIdAtual)
@@ -67,6 +88,38 @@ public class WorkspaceService
         return resultado;
     }
 
+    public async Task<List<ReadAtividadeDTO>> ListarAtividadesAsync(int equipeId, string userIdSolicitante, int limite = 20)
+    {
+        await _equipeService.GarantirMembroAsync(equipeId, userIdSolicitante);
+
+        var atividades = await _context.AtividadesWorkspace
+            .Where(a => a.EquipeId == equipeId)
+            .OrderByDescending(a => a.DataCriacao)
+            .Take(limite)
+            .ToListAsync();
+
+        var resultado = new List<ReadAtividadeDTO>();
+        foreach (var a in atividades)
+        {
+            var ator = await _userManager.FindByIdAsync(a.AtorUserId);
+            var alvo = a.AlvoUserId != null ? await _userManager.FindByIdAsync(a.AlvoUserId) : null;
+            var post = await _context.WorkspacePosts.FindAsync(a.PostId);
+
+            resultado.Add(new ReadAtividadeDTO
+            {
+                Id = a.Id,
+                Tipo = a.Tipo,
+                AtorNome = ator?.NomeExibicao ?? ator?.UserName ?? "Usuário",
+                AlvoNome = alvo?.NomeExibicao ?? alvo?.UserName,
+                PostId = a.PostId,
+                PostConteudoResumo = post?.Conteudo?.Length > 60 ? post.Conteudo[..60] + "..." : post?.Conteudo,
+                StatusNovo = a.StatusNovo,
+                DataCriacao = a.DataCriacao,
+            });
+        }
+        return resultado;
+    }
+
     public async Task<ReadComentarioDTO> ComentarAsync(int postId, string userId, string conteudo)
     {
         var post = await _context.WorkspacePosts.FindAsync(postId) ?? throw new KeyNotFoundException("Post not found.");
@@ -75,6 +128,8 @@ public class WorkspaceService
         var comentario = new WorkspaceComentario { WorkspacePostId = postId, AutorUserId = userId, Conteudo = conteudo };
         await _context.WorkspaceComentarios.AddAsync(comentario);
         await _context.SaveChangesAsync();
+
+        await RegistrarAtividadeAsync(post.EquipeId, TipoAtividade.Comentario, postId, userId); // novo
 
         var autor = await ResolverAutorAsync(userId, new Dictionary<string, AutorResumoDTO>());
         return new ReadComentarioDTO { Id = comentario.Id, Autor = autor, Conteudo = comentario.Conteudo, CriadoEm = comentario.CriadoEm };
@@ -100,6 +155,8 @@ public class WorkspaceService
 
         post.Fixado = !post.Fixado;
         await _context.SaveChangesAsync();
+
+        await RegistrarAtividadeAsync(post.EquipeId, post.Fixado ? TipoAtividade.PostFixado : TipoAtividade.PostDesafixado, postId, userId); // novo
     }
 
     public async Task AtualizarStatusAsync(int postId, StatusAtividade status, string userId)
@@ -107,10 +164,11 @@ public class WorkspaceService
         var post = await _context.WorkspacePosts.FindAsync(postId) ?? throw new KeyNotFoundException("Post not found.");
         await _equipeService.GarantirMembroAsync(post.EquipeId, userId);
         if (!TiposComStatus.Contains(post.Tipo))
-            throw new ArgumentException("Only Revisao/Decisao posts have a status.");
+            throw new ArgumentException("Only Revisao posts have a status.");
 
         post.Status = status;
         post.ConcluidoEm = status == StatusAtividade.Resolvido ? DateTime.UtcNow : null; // limpa se reabrir
+        await RegistrarAtividadeAsync(post.EquipeId, TipoAtividade.StatusAlterado, post.Id, userId, statusNovo: status.ToString());
         await _context.SaveChangesAsync();
     }
 

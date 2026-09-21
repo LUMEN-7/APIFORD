@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using APIFORD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIFORD.Migrations
 {
     [DbContext(typeof(FordDbContext))]
-    partial class FordDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260921163210_atividades")]
+    partial class atividades
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -618,7 +621,7 @@ namespace APIFORD.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("equipe_id");
 
-                    b.Property<int?>("PostId")
+                    b.Property<int>("PostId")
                         .HasColumnType("integer")
                         .HasColumnName("post_id");
 
@@ -633,9 +636,6 @@ namespace APIFORD.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_atividades_workspace");
-
-                    b.HasIndex("PostId")
-                        .HasDatabaseName("ix_atividades_workspace_post_id");
 
                     b.ToTable("atividades_workspace", (string)null);
                 });
@@ -2763,15 +2763,6 @@ namespace APIFORD.Migrations
                     b.Navigation("Carro");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("APIFORD.Model.Workspace.AtividadeWorkspace", b =>
-                {
-                    b.HasOne("APIFORD.Model.Workspace.WorkspacePost", null)
-                        .WithMany()
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("fk_atividades_workspace_workspace_posts_post_id");
                 });
 
             modelBuilder.Entity("APIFORD.Model.Workspace.Teams.EquipeMembro", b =>
