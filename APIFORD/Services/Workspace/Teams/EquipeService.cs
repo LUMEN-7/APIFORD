@@ -18,14 +18,56 @@ public class EquipeService
         _userManager = userManager;
     }
 
-    public async Task<ReadEquipeDTO> CriarAsync(string userId, string nome)
+    public async Task<ReadEquipeDTO> CriarAsync(string userId, CriarEquipeDTO dto)
     {
-        var equipe = new Equipe { Nome = nome, CriadorUserId = userId };
+        var equipe = new Equipe
+        {
+            Nome = dto.Nome,
+            Descricao = dto.Descricao,
+            CriadorUserId = userId,
+            CodigoConvite = await GerarCodigoConviteUnicoAsync()
+        };
         equipe.Membros.Add(new EquipeMembro { UserId = userId, Papel = PapelEquipe.Administrador });
         await _context.Equipes.AddAsync(equipe);
         await _context.SaveChangesAsync();
-        return new ReadEquipeDTO { Id = equipe.Id, Nome = equipe.Nome, TotalMembros = 1, MeuPapel = PapelEquipe.Administrador };
+        return MapearParaDTO(equipe, PapelEquipe.Administrador);
     }
+
+    private async Task<string> GerarCodigoConviteUnicoAsync()
+    {
+        string codigo;
+        do { codigo = $"BCI-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}"; }
+        while (await _context.Equipes.AnyAsync(e => e.CodigoConvite == codigo));
+        return codigo;
+    }
+
+    public async Task<ReadEquipeDTO> EntrarComCodigoAsync(string userId, string codigo)
+    {
+        var equipe = await _context.Equipes
+            .Include(e => e.Membros)
+            .FirstOrDefaultAsync(e => e.CodigoConvite == codigo.Trim().ToUpperInvariant())
+            ?? throw new KeyNotFoundException("Código de convite inválido.");
+
+        var vinculo = equipe.Membros.FirstOrDefault(m => m.UserId == userId);
+        if (vinculo == null)
+        {
+            vinculo = new EquipeMembro { EquipeId = equipe.Id, UserId = userId, Papel = PapelEquipe.Membro };
+            await _context.EquipeMembros.AddAsync(vinculo);
+            await _context.SaveChangesAsync();
+        }
+
+        return MapearParaDTO(equipe, vinculo.Papel);
+    }
+
+    private static ReadEquipeDTO MapearParaDTO(Equipe equipe, PapelEquipe meuPapel) => new()
+    {
+        Id = equipe.Id,
+        Nome = equipe.Nome,
+        Descricao = equipe.Descricao,
+        CodigoConvite = equipe.CodigoConvite,
+        TotalMembros = equipe.Membros.Count,
+        MeuPapel = meuPapel
+    };
 
     public async Task<List<ReadEquipeDTO>> ListarMinhasAsync(string userId)
     {
@@ -34,7 +76,20 @@ public class EquipeService
             .Where(m => m.UserId == userId)
             .ToListAsync();
 
-        return vinculos.Select(v => new ReadEquipeDTO { Id = v.Equipe.Id, Nome = v.Equipe.Nome, TotalMembros = v.Equipe.Membros.Count, MeuPapel = v.Papel }).ToList();
+        return vinculos.Select(v => MapearParaDTO(v.Equipe, v.Papel)).ToList();
+    }
+
+    public async Task<ReadEquipeDTO> ObterPorIdAsync(int equipeId, string userId)
+    {
+        await GarantirMembroAsync(equipeId, userId);
+
+        var equipe = await _context.Equipes
+            .Include(e => e.Membros)
+            .FirstOrDefaultAsync(e => e.Id == equipeId)
+            ?? throw new KeyNotFoundException("Equipe não encontrada.");
+
+        var meuPapel = equipe.Membros.First(m => m.UserId == userId).Papel;
+        return MapearParaDTO(equipe, meuPapel);
     }
 
     public async Task<List<ReadMembroDTO>> ListarMembrosAsync(int equipeId, string userIdSolicitante) // getTeamWorkers

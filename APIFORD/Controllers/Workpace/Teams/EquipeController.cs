@@ -24,7 +24,16 @@ public class EquipeController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<ReadEquipeDTO>> Criar([FromBody] CriarEquipeDTO dto)
-        => Ok(await _equipeService.CriarAsync(ObterUsuarioId(), dto.Nome));
+        => Ok(await _equipeService.CriarAsync(ObterUsuarioId(), dto));
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ReadEquipeDTO>> ObterPorId(int id)
+        => Ok(await _equipeService.ObterPorIdAsync(id, ObterUsuarioId()));
+
+
+    [HttpPost("entrar")]
+    public async Task<ActionResult<ReadEquipeDTO>> EntrarComCodigo([FromBody] EntrarComCodigoDTO dto)
+    => Ok(await _equipeService.EntrarComCodigoAsync(ObterUsuarioId(), dto.Codigo));
 
     [HttpGet("minhas")]
     public async Task<ActionResult<List<ReadEquipeDTO>>> ListarMinhas()
@@ -33,6 +42,7 @@ public class EquipeController : ControllerBase
     [HttpGet("{id}/membros")] // getTeamWorkers
     public async Task<ActionResult<List<ReadMembroDTO>>> ListarMembros(int id)
         => Ok(await _equipeService.ListarMembrosAsync(id, ObterUsuarioId()));
+
 
     [HttpPost("{id}/membros")]
     public async Task<IActionResult> AdicionarMembro(int id, [FromBody] AdicionarMembroDTO dto)

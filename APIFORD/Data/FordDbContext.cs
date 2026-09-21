@@ -73,6 +73,8 @@ public class FordDbContext : IdentityDbContext<User>
                 .WithOne(m => m.Equipe)
                 .HasForeignKey(m => m.EquipeId)
                 .OnDelete(DeleteBehavior.Cascade); // deleting a team removes its membership rows too
+
+            entity.HasIndex(e => e.CodigoConvite).IsUnique();
         });
 
         builder.Entity<EquipeMembro>(entity =>
