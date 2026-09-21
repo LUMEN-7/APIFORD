@@ -22,9 +22,12 @@ public class WorkspaceService
         _equipeService = equipeService;
     }
 
+    private static readonly TipoPost[] TiposComStatus = { TipoPost.Revisao, TipoPost.Decisao };
+
     public async Task<ReadPostDTO> CriarPostAsync(int equipeId, string userId, CriarPostDTO dto)
     {
         await _equipeService.GarantirMembroAsync(equipeId, userId);
+        bool temStatus = TiposComStatus.Contains(dto.Tipo);
 
         var post = new WorkspacePost
         {
@@ -33,8 +36,8 @@ public class WorkspaceService
             Tipo = dto.Tipo,
             Conteudo = dto.Conteudo,
             Tags = dto.Tags,
-            ResponsavelUserId = dto.Tipo == TipoPost.Revisao ? dto.ResponsavelUserId : null,
-            Status = dto.Tipo == TipoPost.Revisao ? (dto.Status ?? StatusRevisao.Pendente) : null,
+            ResponsavelUserId = temStatus ? dto.ResponsavelUserId : null,
+            Status = temStatus ? (dto.Status ?? StatusAtividade.Pendente) : null,
             TipoConteudoVinculado = dto.TipoConteudoVinculado,
             ConteudoVinculadoId = dto.ConteudoVinculadoId,
             ConteudoVinculadoTitulo = dto.ConteudoVinculadoTitulo,
@@ -99,13 +102,15 @@ public class WorkspaceService
         await _context.SaveChangesAsync();
     }
 
-    public async Task AtualizarStatusAsync(int postId, StatusRevisao status, string userId)
+    public async Task AtualizarStatusAsync(int postId, StatusAtividade status, string userId)
     {
         var post = await _context.WorkspacePosts.FindAsync(postId) ?? throw new KeyNotFoundException("Post not found.");
         await _equipeService.GarantirMembroAsync(post.EquipeId, userId);
-        if (post.Tipo != TipoPost.Revisao) throw new ArgumentException("Only Revisao posts have a status.");
+        if (!TiposComStatus.Contains(post.Tipo))
+            throw new ArgumentException("Only Revisao/Decisao posts have a status.");
 
         post.Status = status;
+        post.ConcluidoEm = status == StatusAtividade.Resolvido ? DateTime.UtcNow : null; // limpa se reabrir
         await _context.SaveChangesAsync();
     }
 
@@ -161,6 +166,7 @@ public class WorkspaceService
             TotalCurtidas = post.Curtidas.Count,
             CurtidoPeloUsuarioAtual = post.Curtidas.Any(c => c.UserId == userIdAtual),
             Comentarios = comentarios,
+            ConcluidoEm = post.ConcluidoEm,
         };
     }
 }

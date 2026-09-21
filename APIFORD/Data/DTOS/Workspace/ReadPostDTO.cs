@@ -10,12 +10,13 @@ public class ReadPostDTO
     public string Conteudo { get; set; } = string.Empty;
     public List<string> Tags { get; set; } = new();
     public AutorResumoDTO? Responsavel { get; set; }
-    public StatusRevisao? Status { get; set; }
+    public StatusAtividade? Status { get; set; }
     public TipoConteudoVinculado? TipoConteudoVinculado { get; set; }
     public int? ConteudoVinculadoId { get; set; }
     public string? ConteudoVinculadoTitulo { get; set; }
     public bool Fixado { get; set; }
     public DateTime CriadoEm { get; set; }
+    public DateTime? ConcluidoEm { get; set; }
     public int TotalCurtidas { get; set; }
     public bool CurtidoPeloUsuarioAtual { get; set; }
     public List<ReadComentarioDTO> Comentarios { get; set; } = new();
