@@ -28,13 +28,14 @@ public class UserService
     private readonly DoisFatoresService _doisFatoresService;
     private readonly IConfiguration _configuration;
     private readonly IArmazenamentoService _armazenamentoService;
-    private readonly IEmailSenderService _emailSender; // isso aqui
+    private readonly IEmailSenderService _emailSender;
+    private readonly GmailEmailSenderService _gmailEmailSenderService;
 
 
     public UserService
         (IMapper mapper, FordDbContext context, UserManager<User> userManager, IConfiguration configuration,
         SignInManager<User> signInManager, TokenService tokenService, DoisFatoresService doisFatoresService,
-        IArmazenamentoService armazenamentoService, IEmailSenderService emailSender)
+        IArmazenamentoService armazenamentoService, IEmailSenderService emailSender, GmailEmailSenderService gmailEmailSenderService)
     {
         _mapper = mapper;
         _context = context;
@@ -45,6 +46,7 @@ public class UserService
         _doisFatoresService = doisFatoresService;
         _armazenamentoService = armazenamentoService;
         _emailSender = emailSender;
+        _gmailEmailSenderService = gmailEmailSenderService;
     }
 
 
@@ -299,7 +301,8 @@ public class UserService
 
         var codigo = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
 
-        await _emailSender.EnviarAsync(user.Email, "Código de redefinição de senha", $"Seu código de verificação é: {codigo}");
+        //await _emailSender.EnviarAsync(user.Email, "Código de redefinição de senha", $"Seu código de verificação é: {codigo}");
+        await _gmailEmailSenderService.EnviarAsync(user.Email, "Código de redefinição de senha", $"Seu código de verificação é: {codigo}");
     }
 
     /// <summary>
