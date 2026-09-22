@@ -137,7 +137,7 @@ public class PesquisaService
         {
             Content = JsonContent.Create(dto)
         };
-        request.Headers.Add("X-Internal-Api-Key", _configuration["PythonInternalApiKey"]); // ⚠️ nome do header/config — confirma com o Python
+        request.Headers.Add("X-Api-Key", _configuration["PythonInternalApiKey"]); // ⚠️ nome do header/config — confirma com o Python
 
         var response = await _httpClient.SendAsync(request);
 
