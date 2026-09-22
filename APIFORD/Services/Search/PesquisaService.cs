@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -29,16 +31,16 @@ public class PesquisaService
     private readonly CarroService _carroService;
     private readonly IConfiguration _configuration;
 
-    private string _pythonServiceUrl => _configuration["Python:Url"]; 
+    private string _pythonServiceUrl => _configuration["Python:Url"];
 
     private static bool EstaFresco(Carro carro)
     {
         var idade = DateTime.UtcNow - carro.DataCriacao;
         var anosDesdeOModelo = DateTime.UtcNow.Year - carro.Ano;
 
-        if (anosDesdeOModelo <= 1) return idade < TimeSpan.FromDays(90);   // ano atual/recente: ainda muda preço com frequência, ~3 meses
-        if (anosDesdeOModelo <= 3) return idade < TimeSpan.FromDays(180);  // já estabilizado, ~6 meses
-        return idade < TimeSpan.FromDays(365);                            // carro antigo: dificilmente muda, ~12 meses
+        if (anosDesdeOModelo <= 1) return idade < TimeSpan.FromDays(90);
+        if (anosDesdeOModelo <= 3) return idade < TimeSpan.FromDays(180);
+        return idade < TimeSpan.FromDays(365);
     }
 
     private readonly JsonSerializerOptions _jsonOptions = new()
@@ -58,41 +60,97 @@ public class PesquisaService
         _carroService = carroService;
     }
 
+    private static string NormalizarChaveBusca(string? marca, string? modelo, int? ano)
+    {
+        static string Limpar(string? valor) => (valor ?? string.Empty).Trim().ToLowerInvariant();
+        return $"{Limpar(marca)}|{Limpar(modelo)}|{ano?.ToString() ?? ""}";
+    }
+
+    private static string ChaveDoPayload(string? payload)
+    {
+        if (string.IsNullOrWhiteSpace(payload)) return string.Empty;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(payload);
+            var root = doc.RootElement;
+
+            string Pegar(params string[] nomes)
+            {
+                foreach (var nome in nomes)
+                {
+                    if (!root.TryGetProperty(nome, out var prop)) continue;
+                    return prop.ValueKind == JsonValueKind.Number
+                        ? prop.GetRawText()
+                        : (prop.GetString() ?? "");
+                }
+                return "";
+            }
+
+            var marca = Pegar("brand", "Brand", "marca");
+            var modelo = Pegar("model", "Model", "modelo");
+            var anoTexto = Pegar("year", "Year", "ano");
+            int? ano = int.TryParse(anoTexto, out var n) && n > 0 ? n : null;
+            return NormalizarChaveBusca(marca, modelo, ano);
+        }
+        catch
+        {
+            return payload ?? string.Empty;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // POST /Pesquisa/busca
     // Envia o pedido ao Python e retorna o job_id imediatamente (~5ms)
     // -------------------------------------------------------------------------
     public async Task<Guid> BuscarOuIniciarAsync(BuscaDTO dto, string userId, bool forcarNovaBusca = false)
     {
-        if (!forcarNovaBusca)
+        if (forcarNovaBusca)
+            return await IniciarBusca(dto, userId);
+
+        var chave = NormalizarChaveBusca(dto.Brand, dto.Model, dto.Year);
+        var lockHash = SHA256.HashData(Encoding.UTF8.GetBytes(chave));
+        var lockKey = BitConverter.ToInt64(lockHash, 0);
+        await _context.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({lockKey})");
+
+        var carroExistente = await _context.Carros
+            .Where(c => c.Marca == dto.Brand && c.Modelo == dto.Model && c.Ano == dto.Year)
+            .OrderByDescending(c => c.Id)
+            .FirstOrDefaultAsync();
+
+        if (carroExistente != null && EstaFresco(carroExistente))
         {
-            var carroExistente = await _context.Carros
-                .Where(c => c.Marca == dto.Brand && c.Modelo == dto.Model && c.Ano == dto.Year)
-                .OrderByDescending(c => c.Id)
-                .FirstOrDefaultAsync();
-
-            if (carroExistente != null && EstaFresco(carroExistente))
+            var jobDeCache = new Job
             {
-                var jobDeCache = new Job
-                {
-                    Status = "done",
-                    Payload = JsonSerializer.Serialize(dto),
-                    Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = carroExistente.Id }),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    UserId = userId,
-                    CarroId = carroExistente.Id,
-                    Notificado = true
-                };
+                Status = "done",
+                Payload = JsonSerializer.Serialize(dto),
+                Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = carroExistente.Id }),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                UserId = userId,
+                CarroId = carroExistente.Id,
+                Notificado = true
+            };
 
-                await _context.Jobs.AddAsync(jobDeCache);
-                await _context.SaveChangesAsync();
+            await _context.Jobs.AddAsync(jobDeCache);
+            await _context.SaveChangesAsync();
 
-                return jobDeCache.Id;
-            }
+            return jobDeCache.Id;
         }
 
-        return await IniciarBusca(dto,userId);
+        var limite = DateTime.UtcNow.AddHours(-2);
+        var jobsAbertos = await _context.Jobs
+            .Where(j =>
+                (j.Status == "pending" || j.Status == "running" || j.Status == "processing") &&
+                j.CreatedAt >= limite)
+            .OrderByDescending(j => j.CreatedAt)
+            .ToListAsync();
+
+        var jobAberto = jobsAbertos.FirstOrDefault(j => ChaveDoPayload(j.Payload) == chave);
+        if (jobAberto != null)
+            return jobAberto.Id;
+
+        return await IniciarBusca(dto, userId);
     }
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
@@ -165,20 +223,20 @@ public class PesquisaService
     // -------------------------------------------------------------------------
     public async Task<JobStatusDTO> ChecarJob(Guid jobId, string userId)
     {
-        var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Id == jobId && j.UserId == userId);
+        var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Id == jobId);
         if (job == null) throw new NotFoundException($"Job {jobId} não encontrado.");
 
         if (job.Status != "done" || job.CarroId == null)
             return new JobStatusDTO { Status = job.Status, Error = job.Error };
 
-        var carro = await _carroService.GetByIdAsync(job.CarroId.Value); // ajusta pro método que você já tem
+        var carro = await _carroService.GetByIdAsync(job.CarroId.Value);
         return new JobStatusDTO { Status = "done", Carro = carro };
     }
 
     public async Task<ReadCarroDTO> ProcessarJobPendenteAsync(Job job)
     {
-        var readDto = await ProcessarESalvarCarro(job); // método privado que você já tem
-        job.CarroId = readDto.Id; // ajusta pro nome real da propriedade Id no seu ReadCarroDTO
+        var readDto = await ProcessarESalvarCarro(job);
+        job.CarroId = readDto.Id;
         job.Result = null;
         job.UpdatedAt = DateTime.UtcNow;
         return readDto;
@@ -188,22 +246,21 @@ public class PesquisaService
     // Processamento do C# - Refatorado para o padrão JSONB
     // -------------------------------------------------------------------------
     private async Task<ReadCarroDTO> ProcessarESalvarCarro(Job job)
-{
-    var resultado = JsonSerializer.Deserialize<JobResultDTO>(job.Result!, _jsonOptions);
-    if (resultado == null || resultado.CarroId <= 0)
-        throw new ExternalServiceException("Python","Resultado do job não trouxe um CarroId válido.");
+    {
+        var resultado = JsonSerializer.Deserialize<JobResultDTO>(job.Result!, _jsonOptions);
+        if (resultado == null || resultado.CarroId <= 0)
+            throw new ExternalServiceException("Python", "Resultado do job não trouxe um CarroId válido.");
 
-    var carro = await _context.Carros.FirstOrDefaultAsync(c => c.Id == resultado.CarroId);
-    if (carro == null)
-        throw new NotFoundException($"Python reportou CarroId {resultado.CarroId}, mas ele não foi encontrado no banco.");
+        var carro = await _context.Carros.FirstOrDefaultAsync(c => c.Id == resultado.CarroId);
+        if (carro == null)
+            throw new NotFoundException($"Python reportou CarroId {resultado.CarroId}, mas ele não foi encontrado no banco.");
 
-    var readDto = _mapper.Map<ReadCarroDTO>(carro);
-    await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carro);
-    return readDto;
+        var readDto = _mapper.Map<ReadCarroDTO>(carro);
+        await _helperService.PreencherCatalogoDeFontesNoDtoAsync(readDto, carro);
+        return readDto;
+    }
 }
-}
 
-// DTO interno refatorado para int
 internal record PythonJobResponse
 {
     [System.Text.Json.Serialization.JsonPropertyName("job_id")]
