@@ -7,6 +7,7 @@ using APIFORD.Model.CarroClasses;
 using APIFORD.Services.CarServices;
 using APIFORD.Services.NotificationService;
 using AutoMapper;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -47,6 +48,24 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         // Aqui nós chamamos a versão do método que aceita Listas!
         // Ele vai varrer todos os carros, ir ao banco uma vez só, e distribuir as fontes.
         await _helperService.PreencherCatalogoDeFontesNoDtoAsync(dtos, entities);
+    }
+
+    private static object? DesempacotarValor(object? valor)
+    {
+        if (valor is System.Text.Json.JsonElement je)
+        {
+            return je.ValueKind switch
+            {
+                System.Text.Json.JsonValueKind.String => je.GetString(),
+                System.Text.Json.JsonValueKind.Number => je.TryGetInt64(out var inteiro) ? inteiro : je.GetDouble(),
+                System.Text.Json.JsonValueKind.True => true,
+                System.Text.Json.JsonValueKind.False => false,
+                System.Text.Json.JsonValueKind.Null => null,
+                _ => je.ToString()
+            };
+        }
+        if (valor is Newtonsoft.Json.Linq.JToken jt) return jt.ToObject<object>();
+        return valor;
     }
 
     public async Task<List<ReadCarroDTO>> ListarMaisRecentesAsync(int pagina, int tamanhoPagina)
@@ -145,16 +164,16 @@ public class CarroService : BaseService<Carro, CreateCarroDTO, ReadCarroDTO, Upd
         if (!dados.TryGetValue("marca", out var marcaObj) || !dados.TryGetValue("modelo", out var modeloObj) || !dados.TryGetValue("ano", out var anoObj))
             throw new BadRequestException("O arquivo precisa conter, no mínimo, Marca, Modelo e Ano.");
 
-        var marca = marcaObj.ToString()!;
-        var modelo = modeloObj.ToString()!;
-        var ano = Convert.ToInt32(anoObj);
+        var marca = DesempacotarValor(marcaObj)?.ToString()!;
+        var modelo = DesempacotarValor(modeloObj)?.ToString()!;
+        var ano = Convert.ToInt32(DesempacotarValor(anoObj));
 
         var carro = new Carro { Marca = marca, Modelo = modelo, Ano = ano, DataCriacao = DateTime.UtcNow };
         carro.LinhagemId = await _importacaoService.ResolverLinhagemIdAsync(marca, modelo, ano);
 
         var resto = dados.Where(kv => kv.Key is not ("marca" or "modelo" or "ano")).ToDictionary(kv => kv.Key, kv => kv.Value);
         var fonteId = await _fonteService.ObterOuCriarFonteAsync($"Importação: {arquivo.FileName}");
-
+        
         var naoAplicados = _importacaoService.AplicarAlteracoes(carro, resto, "Importação de Arquivo", fonteId);
 
         await DbSet.AddAsync(carro);

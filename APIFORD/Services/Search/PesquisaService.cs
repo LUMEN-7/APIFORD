@@ -27,8 +27,9 @@ public class PesquisaService
     private readonly HelperService _helperService;
     private readonly NotificacaoService _notificacaoService;
     private readonly CarroService _carroService;
+    private readonly IConfiguration _configuration;
 
-    private string GetPythonServiceUrl() => Environment.GetEnvironmentVariable("Python:Url"); 
+    private string _pythonServiceUrl => _configuration["Python:Url"]; 
 
     private static bool EstaFresco(Carro carro)
     {
@@ -46,9 +47,10 @@ public class PesquisaService
         PropertyNameCaseInsensitive = true
     };
 
-    public PesquisaService(HelperService helperService, HttpClient httpClient, FordDbContext context, IMapper mapper, NotificacaoService notificacaoService, CarroService carroService)
+    public PesquisaService(HelperService helperService, IConfiguration configuration, HttpClient httpClient, FordDbContext context, IMapper mapper, NotificacaoService notificacaoService, CarroService carroService)
     {
         _helperService = helperService;
+        _configuration = configuration;
         _httpClient = httpClient;
         _context = context;
         _mapper = mapper;
@@ -96,10 +98,21 @@ public class PesquisaService
     public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
     {
 
-        var response = await _httpClient.PostAsJsonAsync(GetPythonServiceUrl(), dto);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{_pythonServiceUrl}/specs")
+        {
+            Content = JsonContent.Create(dto)
+        };
+        request.Headers.Add("X-Internal-Api-Key", _configuration["PythonInternalApiKey"]);
+
+        var response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
+        {
+            var corpo = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[DEBUG] Python respondeu {(int)response.StatusCode} {response.StatusCode}: {corpo}");
             throw new ServiceUnavailableException("Microserviço Python indisponível.");
+        }
 
         var payload = await response.Content.ReadFromJsonAsync<PythonJobResponse>(_jsonOptions);
 
@@ -120,10 +133,20 @@ public class PesquisaService
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto)
     {
-        var response = await _httpClient.PostAsJsonAsync(GetPythonServiceUrl(), dto);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{_pythonServiceUrl}/specs")
+        {
+            Content = JsonContent.Create(dto)
+        };
+        request.Headers.Add("X-Internal-Api-Key", _configuration["PythonInternalApiKey"]); // ⚠️ nome do header/config — confirma com o Python
+
+        var response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
+        {
+            var corpo = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[DEBUG] Python respondeu {(int)response.StatusCode} {response.StatusCode}: {corpo}");
             throw new ServiceUnavailableException("Microserviço Python indisponível.");
+        }
 
         var payload = await response.Content.ReadFromJsonAsync<PythonJobResponse>(_jsonOptions);
 
