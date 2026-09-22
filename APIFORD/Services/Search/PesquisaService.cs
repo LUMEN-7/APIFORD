@@ -98,12 +98,12 @@ public class PesquisaService
     public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
     {
 
-
+        var a = JsonContent.Create(dto);
         var request = new HttpRequestMessage(HttpMethod.Post, $"{_pythonServiceUrl}/specs")
         {
-            Content = JsonContent.Create(dto)
+            Content = a
         };
-        request.Headers.Add("X-Internal-Api-Key", _configuration["PythonInternalApiKey"]);
+        request.Headers.Add("X-Api-Key", _configuration["PythonInternalApiKey"]);
 
         var response = await _httpClient.SendAsync(request);
 
