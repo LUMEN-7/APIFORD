@@ -156,8 +156,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<FordDbContext>(options =>
     options.UseNpgsql(connectionString)
-           .UseSnakeCaseNamingConvention()
-           .EnableSensitiveDataLogging());
+           .UseSnakeCaseNamingConvention());
+           //.EnableSensitiveDataLogging());
 
 builder.Services.AddResponseCompression(options =>
 {
