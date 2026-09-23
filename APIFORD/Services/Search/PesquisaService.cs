@@ -190,51 +190,62 @@ public class PesquisaService
         var chave = NormalizarChaveBusca(dto.Brand, dto.Model, dto.Year);
         var lockHash = SHA256.HashData(Encoding.UTF8.GetBytes(chave));
         var lockKey = BitConverter.ToInt64(lockHash, 0);
-        await _context.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({lockKey})");
-        var recente = await _context.Carros
-            .Where(c => c.Marca.ToLower() == dto.Brand.ToLower() && c.Modelo.ToLower() == dto.Model.ToLower()
-                && (!dto.Year.HasValue || c.Ano == dto.Year.Value))
-            .OrderByDescending(c => c.DataCriacao)
-            .FirstOrDefaultAsync();
 
-        if (recente != null && !PrecisaAtualizar(recente))
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        var jobExistente = await strategy.ExecuteAsync(async () =>
         {
-            var jobDeCache = new Job
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT pg_advisory_xact_lock({lockKey})");
+
+            var marca = (dto.Brand ?? "").Trim().ToLower();
+            var modelo = (dto.Model ?? "").Trim().ToLower();
+
+            var recente = await _context.Carros
+                .Where(c => !c.Excluido
+                    && c.Marca.ToLower() == marca
+                    && c.Modelo.ToLower() == modelo
+                    && (!dto.Year.HasValue || c.Ano == dto.Year.Value))
+                .OrderByDescending(c => c.DataCriacao)
+                .FirstOrDefaultAsync();
+
+            if (recente != null && !PrecisaAtualizar(recente))
             {
-                Status = "done",
-                Payload = JsonSerializer.Serialize(dto),
-                Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = recente.Id }),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                UserId = userId,
-                CarroId = recente.Id,
-                Notificado = true
-            };
+                var jobDeCache = new Job
+                {
+                    Status = "done",
+                    Payload = JsonSerializer.Serialize(dto),
+                    Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = recente.Id }),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    UserId = userId,
+                    CarroId = recente.Id,
+                    Notificado = false
+                };
+                await _context.Jobs.AddAsync(jobDeCache);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return jobDeCache.Id;
+            }
 
-            await _context.Jobs.AddAsync(jobDeCache);
-            await _context.SaveChangesAsync();
-            await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, jobDeCache.Id, dto.Brand ?? "", dto.Model ?? "");
-            return jobDeCache.Id;
-        }
+            var limite = DateTime.UtcNow.AddHours(-2);
+            var jobsAbertos = await _context.Jobs
+                .Where(j =>
+                    (j.Status == "pending" || j.Status == "running" || j.Status == "processing") &&
+                    j.CreatedAt >= limite)
+                .OrderByDescending(j => j.CreatedAt)
+                .ToListAsync();
 
-        var limite = DateTime.UtcNow.AddHours(-2);
-        var jobsAbertos = await _context.Jobs
-            .Where(j =>
-                (j.Status == "pending" || j.Status == "running" || j.Status == "processing") &&
-                j.CreatedAt >= limite)
-            .OrderByDescending(j => j.CreatedAt)
-            .ToListAsync();
+            var aberto = jobsAbertos.FirstOrDefault(j => ChaveDoPayload(j.Payload) == chave);
+            await transaction.CommitAsync();
+            return aberto?.Id;
+        });
 
-        var jobAberto = jobsAbertos.FirstOrDefault(j => ChaveDoPayload(j.Payload) == chave);
-        if (jobAberto != null)
-        {
-            await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, jobAberto.Id, dto.Brand ?? "", dto.Model ?? "");
-            return jobAberto.Id;
-        }
-
-        var iniciado = await IniciarBusca(dto, userId);
-        await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, iniciado, dto.Brand ?? "", dto.Model ?? "");
-        return iniciado;
+        var jobId = jobExistente ?? await IniciarBusca(dto, userId);
+        await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, jobId, dto.Brand ?? "", dto.Model ?? "");
+        return jobId;
     }
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
@@ -310,10 +321,22 @@ public class PesquisaService
         var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Id == jobId);
         if (job == null) throw new NotFoundException($"Job {jobId} não encontrado.");
 
-        if (job.Status != "done" || job.CarroId == null)
+        if (job.Status != "done")
             return new JobStatusDTO { Status = job.Status, Error = job.Error };
 
-        var carro = await _carroService.GetByIdAsync(job.CarroId.Value);
+        ReadCarroDTO carro;
+        if (job.CarroId == null)
+        {
+            if (string.IsNullOrWhiteSpace(job.Result))
+                return new JobStatusDTO { Status = job.Status, Error = job.Error };
+
+            carro = await ProcessarJobPendenteAsync(job);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            carro = await _carroService.GetByIdAsync(job.CarroId.Value);
+        }
 
         if (!job.Notificado)
         {
