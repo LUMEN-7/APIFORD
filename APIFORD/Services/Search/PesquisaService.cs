@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace APIFORD.Services.Search;
 
@@ -33,15 +34,6 @@ public class PesquisaService
 
     private string _pythonServiceUrl => _configuration["Python:Url"];
 
-    private static bool EstaFresco(Carro carro)
-    {
-        var idade = DateTime.UtcNow - carro.DataCriacao;
-        var anosDesdeOModelo = DateTime.UtcNow.Year - carro.Ano;
-
-        if (anosDesdeOModelo <= 1) return idade < TimeSpan.FromDays(90);
-        if (anosDesdeOModelo <= 3) return idade < TimeSpan.FromDays(180);
-        return idade < TimeSpan.FromDays(365);
-    }
 
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -58,6 +50,89 @@ public class PesquisaService
         _mapper = mapper;
         _notificacaoService = notificacaoService;
         _carroService = carroService;
+    }
+
+    private static bool EstaFresco(Carro carro)
+    {
+        var idade = DateTime.UtcNow - carro.DataCriacao;
+        var anosDesdeOModelo = DateTime.UtcNow.Year - carro.Ano;
+
+        if (anosDesdeOModelo <= 1) return idade < TimeSpan.FromDays(90);
+        if (anosDesdeOModelo <= 3) return idade < TimeSpan.FromDays(180);
+        return idade < TimeSpan.FromDays(365);
+    }
+
+    private static bool FonteVazia<T>(PropriedadeScraping<T>? prop)
+    {
+        if (prop?.Fontes == null || prop.Fontes.Count == 0)
+            return true;
+
+        return prop.Fontes.All(f =>
+            f.Valor is null
+            || f.Valor is string s && string.IsNullOrWhiteSpace(s)
+            || f.Valor is IEnumerable<string> lista && !lista.Any());
+    }
+
+    private static double PercentualCamposVazios(Carro c)
+    {
+        var campos = new List<bool>();
+
+        void Add<T>(PropriedadeScraping<T>? p) => campos.Add(FonteVazia(p));
+
+        // raiz do Carro
+        Add(c.Descricao);
+        Add(c.Preco);
+        Add(c.Modos);
+        Add(c.Categoria);
+        campos.Add(string.IsNullOrWhiteSpace(c.ImagemUrl));
+
+        // Especificacao — Potencia, Torque, PotenciaRpm, TorqueRpm, Transmissao, Motor, Tracao
+        var spec = c.Especificacoes?.FirstOrDefault() ?? new Especificacao();
+        Add(spec.Potencia);
+        Add(spec.Torque);
+        Add(spec.PotenciaRpm);
+        Add(spec.TorqueRpm);
+        Add(spec.Transmissao);
+        Add(spec.Motor);
+        Add(spec.Tracao);
+
+        // Consumo — Cidade, Estrada
+        var cons = c.Consumos?.FirstOrDefault() ?? new Consumo();
+        Add(cons.Cidade);
+        Add(cons.Estrada);
+
+        // Dimensao — Comprimento, Largura, Altura, EntreEixos
+        var dim = c.Dimensoes?.FirstOrDefault() ?? new Dimensao();
+        Add(dim.Comprimento);
+        Add(dim.Largura);
+        Add(dim.Altura);
+        Add(dim.EntreEixos);
+
+        // Pneu — Tipo, Aro, Largura, Perfil
+        var pneu = c.Pneus?.FirstOrDefault() ?? new Pneu();
+        Add(pneu.Tipo);
+        Add(pneu.Aro);
+        Add(pneu.Largura);
+        Add(pneu.Perfil);
+
+        // Extra — tanque, combustível, carga, reboque, Performance, Seguranca, Conforto, Tecnologia
+        var extra = c.Extras?.FirstOrDefault() ?? new Extra();
+        Add(extra.CapacidadeTanque);
+        Add(extra.TipoCombustivel);
+        Add(extra.CapacidadeCarga);
+        Add(extra.CapacidadeReboque);
+        Add(extra.Performance);
+        Add(extra.Seguranca);
+        Add(extra.Conforto);
+        Add(extra.Tecnologia);
+
+        return campos.Count == 0 ? 1 : campos.Count(v => v) / (double)campos.Count;
+    }
+
+    private static bool PrecisaAtualizar(Carro c)
+    {
+        if (!EstaFresco(c)) return true;
+        return PercentualCamposVazios(c) >= 0.30;
     }
 
     private static string NormalizarChaveBusca(string? marca, string? modelo, int? ano)
@@ -106,35 +181,39 @@ public class PesquisaService
     public async Task<Guid> BuscarOuIniciarAsync(BuscaDTO dto, string userId, bool forcarNovaBusca = false)
     {
         if (forcarNovaBusca)
-            return await IniciarBusca(dto, userId);
+        {
+            var novo = await IniciarBusca(dto, userId);
+            await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, novo, dto.Brand ?? "", dto.Model ?? "");
+            return novo;
+        }
 
         var chave = NormalizarChaveBusca(dto.Brand, dto.Model, dto.Year);
         var lockHash = SHA256.HashData(Encoding.UTF8.GetBytes(chave));
         var lockKey = BitConverter.ToInt64(lockHash, 0);
         await _context.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({lockKey})");
-
-        var carroExistente = await _context.Carros
-            .Where(c => c.Marca == dto.Brand && c.Modelo == dto.Model && c.Ano == dto.Year)
-            .OrderByDescending(c => c.Id)
+        var recente = await _context.Carros
+            .Where(c => c.Marca.ToLower() == dto.Brand.ToLower() && c.Modelo.ToLower() == dto.Model.ToLower()
+                && (!dto.Year.HasValue || c.Ano == dto.Year.Value))
+            .OrderByDescending(c => c.DataCriacao)
             .FirstOrDefaultAsync();
 
-        if (carroExistente != null && EstaFresco(carroExistente))
+        if (recente != null && !PrecisaAtualizar(recente))
         {
             var jobDeCache = new Job
             {
                 Status = "done",
                 Payload = JsonSerializer.Serialize(dto),
-                Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = carroExistente.Id }),
+                Result = JsonSerializer.Serialize(new JobResultDTO { CarroId = recente.Id }),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 UserId = userId,
-                CarroId = carroExistente.Id,
+                CarroId = recente.Id,
                 Notificado = true
             };
 
             await _context.Jobs.AddAsync(jobDeCache);
             await _context.SaveChangesAsync();
-
+            await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, jobDeCache.Id, dto.Brand ?? "", dto.Model ?? "");
             return jobDeCache.Id;
         }
 
@@ -148,9 +227,14 @@ public class PesquisaService
 
         var jobAberto = jobsAbertos.FirstOrDefault(j => ChaveDoPayload(j.Payload) == chave);
         if (jobAberto != null)
+        {
+            await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, jobAberto.Id, dto.Brand ?? "", dto.Model ?? "");
             return jobAberto.Id;
+        }
 
-        return await IniciarBusca(dto, userId);
+        var iniciado = await IniciarBusca(dto, userId);
+        await _notificacaoService.RegistrarAcompanhamentoBuscaAsync(userId, iniciado, dto.Brand ?? "", dto.Model ?? "");
+        return iniciado;
     }
 
     public async Task<Guid> IniciarBusca(BuscaDTO dto, string userId)
@@ -230,6 +314,14 @@ public class PesquisaService
             return new JobStatusDTO { Status = job.Status, Error = job.Error };
 
         var carro = await _carroService.GetByIdAsync(job.CarroId.Value);
+
+        if (!job.Notificado)
+        {
+            job.Notificado = true;
+            await _context.SaveChangesAsync();
+            await _notificacaoService.NotificarBuscaConcluidaDoJobAsync(job.Id, carro);
+        }
+
         return new JobStatusDTO { Status = "done", Carro = carro };
     }
 

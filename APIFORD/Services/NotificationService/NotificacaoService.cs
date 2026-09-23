@@ -289,4 +289,89 @@ public class NotificacaoService
         // evento específico, pra quem estiver na tela de busca escutando por esse jobId
         await _hubContext.Clients.User(userId).SendAsync("BuscaConcluida", new { jobId, carro });
     }
+    public async Task RegistrarAcompanhamentoBuscaAsync(string userId, Guid jobId, string marca, string modelo)
+    {
+        var jobKey = jobId.ToString();
+
+        var evento = await _context.NotificacoesEventos
+            .Include(e => e.Destinatarios)
+            .FirstOrDefaultAsync(e =>
+                e.Tipo == NotificationTypes.BUSCA_ANDAMENTO &&
+                e.Subtitulo == jobKey);
+
+        if (evento == null)
+        {
+            evento = new NotificacaoEvento
+            {
+                Tipo = NotificationTypes.BUSCA_ANDAMENTO,
+                Titulo = "Busca em andamento",
+                Subtitulo = jobKey,
+                Mensagem = $"Estamos buscando {marca} {modelo}. Você será avisado ao terminar.",
+                DataCriacao = DateTime.UtcNow,
+                Destinatarios = new List<NotificacaoUsuario>
+            {
+                new() { UserId = userId, Lida = false }
+            }
+            };
+
+            await _context.NotificacoesEventos.AddAsync(evento);
+            await _context.SaveChangesAsync();
+            await DispararPushAsync(evento.Destinatarios.ToList());
+            return;
+        }
+
+        if (evento.Destinatarios.Any(d => d.UserId == userId))
+            return;
+
+        var destinatario = new NotificacaoUsuario
+        {
+            NotificacaoEventoId = evento.Id,
+            UserId = userId,
+            Lida = false
+        };
+
+        evento.Destinatarios.Add(destinatario);
+        await _context.SaveChangesAsync();
+        await DispararPushAsync(new List<NotificacaoUsuario> { destinatario });
+    }
+
+    public async Task NotificarBuscaConcluidaDoJobAsync(Guid jobId, ReadCarroDTO carro)
+    {
+        var jobKey = jobId.ToString();
+
+        var andamento = await _context.NotificacoesEventos
+            .Include(e => e.Destinatarios)
+            .FirstOrDefaultAsync(e =>
+                e.Tipo == NotificationTypes.BUSCA_ANDAMENTO &&
+                e.Subtitulo == jobKey);
+
+        var userIds = andamento?.Destinatarios
+            .Select(d => d.UserId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList() ?? new List<string>();
+
+        if (andamento != null)
+        {
+            _context.NotificacoesEventos.Remove(andamento);
+            await _context.SaveChangesAsync();
+        }
+
+        if (!userIds.Any()) return;
+
+        await CriarBroadcastAsync(new CreateNotificationDTO
+        {
+            Tipo = NotificationTypes.BUSCA_CONCLUIDA,
+            Titulo = "Sua busca terminou!",
+            Mensagem = $"Encontramos as especificações de {carro.Marca} {carro.Modelo}.",
+            TipoDestino = TipoDestinoNotificacao.UsuariosEspecificos,
+            UserIds = userIds,
+            LinhagemId = carro.LinhagemId
+        });
+
+        var payload = new { jobId, carro };
+        await Task.WhenAll(userIds.Select(id =>
+            _hubContext.Clients.User(id).SendAsync("BuscaConcluida", payload)));
+    }
+
 }

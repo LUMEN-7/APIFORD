@@ -8,7 +8,8 @@ public enum NotificationTypes
     LANCAMENTO,
     SYSTEM,
     REPORT,
-    BUSCA_CONCLUIDA
+    BUSCA_CONCLUIDA,
+    BUSCA_ANDAMENTO
 }
 
 public enum TipoDestinoNotificacao
