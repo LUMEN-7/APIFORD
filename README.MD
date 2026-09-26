@@ -4,69 +4,27 @@
 
 # APIFORD
 
-<p align="start">
-  <b>API desenvolvida em C# com .NET 10 focada em arquitetura escalável, autenticação, gerenciamento de usuários, integração com banco de dados SQL Server e estrutura baseada em Services + DTOs + AutoMapper.</b><br/>
-  Projeto estruturado para servir como API Gateway/BFF, oferecendo uma arquitetura limpa, reutilizável e preparada para expansão.
-</p>
+API em **ASP.NET Core / .NET 10** do projeto **Beyond Compare (BCI)** — Ford FIAP Challenge 2026, Desafio 01 (inteligência competitiva automotiva).
+
+Orquestra catálogo de veículos, busca (microserviço Python), comparação, exportação, workspace, agendamentos e conta do usuário. Persistência em **PostgreSQL**. Autenticação **JWT** (Identity + Google + 2FA).
+
+![Status](https://img.shields.io/badge/STATUS-EM%20DESENVOLVIMENTO-0562D2?style=for-the-badge&labelColor=00142E)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&labelColor=00142E)
+![Postgres](https://img.shields.io/badge/PostgreSQL-Npgsql-336791?style=for-the-badge&labelColor=00142E)
 
 ---
 
-![Status](https://img.shields.io/badge/STATUS-EM%20DESENVOLVIMENTO-0562D2?style=for-the-badge\&labelColor=00142E)
-![Version](https://img.shields.io/badge/VERSION-1.0.0-0562D2?style=for-the-badge\&labelColor=00142E)
+| Tema | O que tem |
+|---|---|
+| [Arquitetura (SOA)](docs/arquitetura.md) | Camadas, diagrama, workers, integração Python |
+| [Autenticação e JWT](docs/autenticacao.md) | Público × autenticado × Admin, claims, expiração |
+| [Módulos e rotas](docs/modulos.md) | Controllers e o que cada um faz |
+| [Como rodar](docs/como-rodar.md) | Local, Docker, migrations |
+| [Configuração](docs/configuracao.md) | Connection string, JWT, e-mail, R2, Python — via secrets |
+| [API, Swagger e erros](docs/api-e-erros.md) | OpenAPI, formato `{ status, message }`, prints |
+| [Testes](docs/testes.md) | Unitário, integração, como gerar evidência |
 
----
-
-## Links úteis
-
-* Documentação via Swagger
-* Sistema de autenticação com Identity
-* Arquitetura baseada em Services e DTOs
-* Estrutura preparada para escalabilidade
-
----
-
-## Funcionalidades
-
-* Sistema de autenticação utilizando ASP.NET Identity
-* Arquitetura baseada em Services genéricos
-* CRUD genérico reutilizável com Generic Base Service
-* AutoMapper para mapeamento entre entidades e DTOs
-* Documentação automática com Swagger
-* Integração com SQL Server via Entity Framework Core
-* Middleware global para tratamento de exceções
-* Soft Delete de entidades
-* Sistema de anonimização de dados
-* Estrutura pronta para JWT Authentication
-* Compressão de respostas HTTP
-* Conversão automática de ENUM para string em JSON
-* Arquitetura preparada para expansão de módulos e microsserviços
-
----
-
-## Arquitetura
-
-```text
-Cliente / Frontend
-        ↓
-Controllers (API)
-        ↓
-Services
-        ↓
-Entity Framework Core
-        ↓
-SQL Server
-```
-
-### Estrutura arquitetural utilizada
-
-* Controllers responsáveis apenas pela camada HTTP
-* Services contendo regras de negócio
-* DTOs para transferência segura de dados
-* AutoMapper para conversão entre DTOs e entidades
-* Entity Framework Core para persistência
-* Middleware global para exceções
-* ASP.NET Identity para autenticação e gerenciamento de usuários
-* Dependency Injection nativa do .NET
+Testes também têm um guia curto em [`APIFORD.Tests/README.md`](APIFORD.Tests/README.md).
 
 ---
 
@@ -74,265 +32,51 @@ SQL Server
 
 ### Backend
 
-[![CSharp](https://img.shields.io/badge/C%23-239120?style=for-the-badge\&logo=csharp\&logoColor=white\&labelColor=black)](https://learn.microsoft.com/dotnet/csharp/)
-[![DotNet](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge\&logo=dotnet\&logoColor=white\&labelColor=black)](https://dotnet.microsoft.com/)
-[![ASP.NET](https://img.shields.io/badge/ASP.NET-5C2D91?style=for-the-badge\&logo=dotnet\&logoColor=white\&labelColor=black)](https://dotnet.microsoft.com/apps/aspnet)
-[![EntityFramework](https://img.shields.io/badge/Entity%20Framework-6DB33F?style=for-the-badge\&logo=.net\&logoColor=white\&labelColor=black)](https://learn.microsoft.com/ef/)
-[![SQLServer](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge\&logo=microsoftsqlserver\&logoColor=white\&labelColor=black)](https://www.microsoft.com/sql-server)
+[![CSharp](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white&labelColor=black)](https://learn.microsoft.com/dotnet/csharp/)
+[![DotNet](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=black)](https://dotnet.microsoft.com/)
+[![ASP.NET](https://img.shields.io/badge/ASP.NET-5C2D91?style=for-the-badge&logo=dotnet&logoColor=white&labelColor=black)](https://dotnet.microsoft.com/apps/aspnet)
+[![EntityFramework](https://img.shields.io/badge/Entity%20Framework-6DB33F?style=for-the-badge&logo=.net&logoColor=white&labelColor=black)](https://learn.microsoft.com/ef/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white&labelColor=black)](https://www.postgresql.org/)
 
 ### Bibliotecas e Ferramentas
 
-[![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge\&logo=swagger\&logoColor=black\&labelColor=black)](https://swagger.io/)
-[![AutoMapper](https://img.shields.io/badge/AutoMapper-blue?style=for-the-badge\&labelColor=black)](https://automapper.org/)
-[![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge\&logo=jsonwebtokens\&logoColor=white\&labelColor=black)](https://jwt.io/)
-[![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge\&logo=git\&logoColor=white\&labelColor=black)](https://git-scm.com/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge\&logo=github\&logoColor=white\&labelColor=black)](https://github.com/)
+[![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black&labelColor=black)](https://swagger.io/)
+[![AutoMapper](https://img.shields.io/badge/AutoMapper-blue?style=for-the-badge&labelColor=black)](https://automapper.org/)
+[![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white&labelColor=black)](https://jwt.io/)
+[![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white&labelColor=black)](https://git-scm.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white&labelColor=black)](https://github.com/)
 
 ---
 
-## Estrutura do Projeto
-
-```text
-APIFORD/
-│
-├── Controllers/
-├── Data/
-│   ├── DTOs/
-│   └── FordDbContext.cs
-│
-├── Middleware/
-├── Model/
-├── Perfils/
-├── Services/
-│   ├── Interfaces/
-│   └── BaseService.cs
-│
-├── Migrations/
-├── appsettings.json
-├── Program.cs
-└── APIFORD.csproj
-```
-
----
-
-## Configurações Principais
-
-### Banco de Dados
-
-O projeto utiliza SQL Server com Entity Framework Core.
-
-Exemplo de connection string:
-
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=APIFORD;Trusted_Connection=True;TrustServerCertificate=True"
-}
-```
-
----
-
-### Chave JWT
-
-A aplicação está preparada para autenticação JWT.
-
-```json
-"SymmetricSecurityKey": "SUA_CHAVE_SECRETA"
-```
-
----
-
-## Como rodar o projeto
-
-### Pré-requisitos
-
-* .NET 10 SDK
-* SQL Server
-* Git
-* Visual Studio 2022+ ou VS Code
-
----
-
-### Clonar o repositório
+## Arranque rápido
 
 ```bash
-git clone https://github.com/user/APIFORD.git
-```
+# Postgres
+docker run --name apiford-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
 
----
+# secrets (nunca commitar chave/senha)
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=APIFORD;Username=postgres;Password=postgres" --project APIFORD
+dotnet user-secrets set "SymmetricSecurityKey" "troque-por-uma-chave-longa" --project APIFORD
 
-### Entrar na pasta do projeto
-
-```bash
-cd APIFORD
-```
-
----
-
-### Restaurar dependências
-
-```bash
 dotnet restore
+dotnet ef database update --project APIFORD
+dotnet run --project APIFORD
 ```
+
+Swagger: `https://localhost:<porta>/swagger`  
+Testes: `dotnet test` (detalhes em [docs/testes.md](docs/testes.md))
 
 ---
 
-### Aplicar migrations
-
-```bash
-dotnet ef database update
-```
-
----
-
-### Executar o projeto
-
-```bash
-dotnet run
-```
-
----
-
-## Swagger
-
-Após iniciar o projeto, acesse:
+## Solução
 
 ```text
-https://localhost:xxxx/swagger
+APIFORD.slnx
+├── APIFORD/                 API
+└── APIFORD.Tests/           unitário + integração
 ```
 
-A documentação será gerada automaticamente.
-
----
-
-## Segurança
-
-A aplicação possui estrutura preparada para:
-
-* JWT Authentication
-* ASP.NET Identity
-* Authorization Policies
-* Middleware de tratamento de exceções
-* Soft Delete
-* Exclusão Anônima
-
----
-
-## Generic Base Service
-
-O projeto utiliza um serviço genérico reutilizável:
-
-```csharp
-BaseService<TEntity, TCreateDTO, TReadDTO, TUpdateDTO, TKey>
-```
-
-Esse serviço oferece:
-
-* CreateAsync
-* GetAllAsync
-* GetByIdAsync
-* UpdateAsync
-* SoftDeleteAsync
-* AnonymizeAsync
-
-Permitindo reaproveitamento de código e padronização das operações CRUD.
-
----
-
-## Executar Testes
-
-```bash
-dotnet test
-```
-
----
-
-## Roadmap
-
-* [x] Estrutura inicial da API
-* [x] Integração com SQL Server
-* [x] ASP.NET Identity
-* [x] Swagger Documentation
-* [x] Generic Base Service
-* [x] Middleware global de exceções
-* [ ] JWT Authentication completo
-* [ ] Logs centralizados
-* [ ] Testes automatizados
-* [ ] Dockerização
-* [ ] CI/CD
-* [ ] Rate Limiting
-* [ ] Cache distribuído
-* [ ] Integração com microsserviços
-
----
-
-##  Padrões Utilizados
-
-* Repository Pattern (parcial)
-* Service Layer Pattern
-* Dependency Injection
-* DTO Pattern
-* Middleware Pattern
-* SOLID
-* Clean Architecture Concepts
-
----
-
-## Pacotes Utilizados
-
-```text
-AutoMapper
-EntityFrameworkCore
-Microsoft.AspNetCore.Identity
-Microsoft.AspNetCore.Authentication.JwtBearer
-Swashbuckle.AspNetCore
-Newtonsoft.Json
-```
-
----
-
-## Middleware Global de Exceções
-
-O projeto possui middleware personalizado responsável por:
-
-* Captura global de erros
-* Retorno padronizado
-* Tratamento de exceções inesperadas
-* Melhor organização da API
-
----
-
-## Observações
-
-* O projeto foi estruturado visando reutilização e escalabilidade.
-* A arquitetura facilita a criação de novos módulos.
-* A camada de serviços reduz duplicação de código.
-* O uso de DTOs melhora segurança e desacoplamento.
-* A estrutura suporta expansão futura para microsserviços.
-
----
-
-## Como contribuir
-
-1. Fork o projeto
-2. Crie uma branch
-
-```bash
-git checkout -b feature/minha-feature
-```
-
-3. Commit suas alterações
-
-```bash
-git commit -m "feat: minha nova feature"
-```
-
-4. Push da branch
-
-```bash
-git push origin feature/minha-feature
-```
-
-5. Abra um Pull Request
+Front esperado no CORS: `http://localhost:5173` e `https://beyond-compare.vercel.app`.
 
 ---
 
